@@ -8,6 +8,7 @@
 
 #include "rosbag2_cpp/writer.hpp"
 #include "rosbag2_cpp/writers/sequential_writer.hpp"
+#include <rosbag2_cpp/storage_options.hpp>
 #include "rosbag2_storage/serialized_bag_message.hpp"
 
 #define HIGH_FREQ 0
