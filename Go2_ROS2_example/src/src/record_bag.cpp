@@ -8,7 +8,9 @@
 
 #include "rosbag2_cpp/writer.hpp"
 #include "rosbag2_cpp/writers/sequential_writer.hpp"
+#ifdef ROSBAG2_STORAGE__STORAGE_OPTIONS_HPP_
 #include "rosbag2_storage/storage_options.hpp"
+#endif
 #include "rosbag2_storage/serialized_bag_message.hpp"
 
 #define HIGH_FREQ 0
@@ -27,7 +29,11 @@ public:
             topic_name = "sportmodestate";
         }
 
+#ifdef ROSBAG2_STORAGE__STORAGE_OPTIONS_HPP_
         const rosbag2_storage::StorageOptions storage_options({"timed_synthetic_bag", "sqlite3"});
+#else
+        const rosbag2_cpp::StorageOptions storage_options({"timed_synthetic_bag", "sqlite3"});
+#endif
         const rosbag2_cpp::ConverterOptions converter_options(
             {rmw_get_serialization_format(),
              rmw_get_serialization_format()});
