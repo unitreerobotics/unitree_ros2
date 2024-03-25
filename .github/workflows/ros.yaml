@@ -17,7 +17,8 @@ jobs:
         ros_distribution:
           - humble
           - iron 
-          - rolling
+          - galactic
+          - foxy
         include:
           # Foxy (EOL)
           - docker_image: rostooling/setup-ros-docker:ubuntu-focal-ros-foxy-ros-base-latest
@@ -25,7 +26,7 @@ jobs:
             ros_version: 2
           # Galactic (EOL)
           - docker_image: rostooling/setup-ros-docker:ubuntu-focal-ros-galactic-ros-base-latest
-            ros_distribution: humble
+            ros_distribution: galactic
             ros_version: 2
           # Humble Hawksbill (May 2022 - May 2027)
           - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-humble-ros-base-latest
@@ -33,10 +34,6 @@ jobs:
             ros_version: 2
           - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-iron-ros-base-latest
             ros_distribution: iron
-            ros_version: 2
-          # Rolling Ridley  (June 2020 - Present)
-          - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-rolling-ros-base-latest
-            ros_distribution: rolling
             ros_version: 2
     container:
       image: ${{ matrix.docker_image }}
