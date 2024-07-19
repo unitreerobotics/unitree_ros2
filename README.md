@@ -3,9 +3,9 @@ Unitree robot ROS2 support
 [TOC]
 
 # Introduction
-Unitree SDK2 implements an easy-to-use robot communication mechanism based on Cyclonedds, which enable developers to achieve robot communication and control (**Supports Unitree Go2, B2, and H1**). See: https://github.com/unitreerobotics/unitree_sdk2
+The [Unitree SDK2](https://github.com/unitreerobotics/unitree_sdk2) implements an easy-to-use robot communication mechanism based on Cyclonedds, which enables developers to achieve robot communication and control (**Supports Unitree Go2, B2, and H1**).
 
-DDS is alos used in ROS2 as a communication mechanism. Therefore, the underlying layers of Unitree Go2, B2, and H1 robots can be compatible with ROS2. ROS2 msg can be direct used for communication and control of Unitree robot without wrapping the SDK interface.
+Conveniently, [Cyclone DDS](https://cyclonedds.io/) is also one of the four major middleware implementations used in [ROS2](https://docs.ros.org/) as a communication mechanism. Therefore, the underlying layers of Unitree Go2, B2, and H1 robots are straightforward to connect to ROS2. ROS2 messages can be directly used for communication and control of Unitree robots without wrapping the SDK interface.
 
 # Configuration
 ## System requirements
@@ -14,12 +14,15 @@ Tested systems and ROS2 distro
 |--|--|
 |Ubuntu 20.04|foxy|
 |Ubuntu 22.04|humble|
+|Ubuntu 24.04|jazzy|
 
-Taking ROS2 foxy as an example, if you need another version of ROS2, replace "foxy" with the current ROS2 version name in the corresponding place:
+Taking ROS2 foxy as an example, the installation is described here: https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html. If you need another  version of ROS2, replace "foxy" with the current ROS2 version name in the corresponding place.  
 
-The installation of ROS2 foxy can refer to: https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html
+Once you have installed ROS2 on your computer, install the Unitree ROS2 package. 
 
-ctrl+alt+T open the terminal, clone the repository: https://github.com/unitreerobotics/unitree_ros2
+## Install Unitree ROS2 package
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/unitreerobotics/unitree_ros2
@@ -27,10 +30,7 @@ git clone https://github.com/unitreerobotics/unitree_ros2
 where:
 - **cyclonedds_ws**: The workspace of Unitree ros2 package. The msg for Unitree robot are supplied in the subfolder cyclonedds_ws/unitree/unitree_go and cyclonedds_ ws/unitree/unitree_api.
 - **example**: The workspace of some examples.
-
-
-## Install Unitree ROS2 package
-
+ 
 ### 1. Dependencies
 ```bash
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
@@ -38,22 +38,20 @@ sudo apt install ros-foxy-rosidl-generator-dds-idl
 ```
 
 ### 2. Compile cyclone dds
-The cyclonedds version of Unitree robot is 0.10.2. To communicate with Unitree robots using ROS2, it is necessary to change the dds implementation. See：https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html
+The cyclonedds version of Unitree robots is 0.10.2. To communicate with Unitree robots using ROS2, it is generally necessary to change the default dds implementation. See https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html for more information. 
 
-Before compiling cyclonedds, please ensure that ros2 environment has **NOT** been sourced when starting the terminal. Otherwise, it may cause errors in compilation.
-
-If "source/opt/ros/foxy/setup. bash" has been added to the ~/.bashrc file when installing ROS2, it needs to be commented out:
+Before compiling cyclonedds, please ensure that the ros2 environment has **NOT** been sourced when starting the terminal. Otherwise, there will be errors during compilation. If "source/opt/ros/foxy/setup.bash" has been added to the `~/.bashrc` file when installing ROS2, it needs to be commented out:
 
 ```bash
 sudo apt install gedit
 sudo gedit ~/.bashrc
-``` 
+```
 ```bash
 # source /opt/ros/foxy/setup.bash 
 ```
 
+Then, compile cyclonedds:
 
-Compile cyclone-dds
 ```bash
 cd ~/unitree_ros2/cyclonedds_ws/src
 git clone https://github.com/ros2/rmw_cyclonedds -b foxy
@@ -63,19 +61,20 @@ colcon build --packages-select cyclonedds #Compile cyclone-dds package
 ```
 
 ### 3. Compile unitree_go and unitree_api packages
-After compiling cyclone-dds, ROS2 dependencies is required for compilation of the unitree_go and unitree_api packages. Therefore, before compiling, it is necessary to source the environment of ROS2.
+ROS2 dependencies are required for compilation of the `unitree_go` and `unitree_api` packages. Therefore, before compiling those two packages, please source the ROS2 environment.
+
 ```bash
 source /opt/ros/foxy/setup.bash # source ROS2 environment
 colcon build # Compile all packages in the workspace
 ```
 
-## Connect to Unitree robot
+## Connect to the Unitree robot
 
 ### 1. Network configuration
-Connect Unitree robot and the computer using Ethernet cable. Then, use ifconfig to view the network interface that the robot connected. For example, "enp3s0" in the following figure.
+Connect the Unitree robot to your computer using an Ethernet cable. Then, use `ifconfig` to determine the network interface that the robot used to connect to your computer. For example, "enp3s0" in the following figure. Note that initially, there will not be an IPv4 address (or entry in the `inet` line), but you will add this next.
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/5d22c143-5dad-4964-81f3-55864906a9f0.png)
 
-Next, open the network settings, find the network interface that the robot connected.In IPv4 setting, change the IPv4 mode to manual, set the address to 192.168.123.99, and set the mask to 255.255.255.0. After completion, click apply and wait for the network to reconnect.
+Open the network settings and select the network interface that the robot connected to. In the IPv4 settings, change the IPv4 mode to manual, set the address to 192.168.123.99, and set the mask to 255.255.255.0. After completion, click apply and wait for the network to reconnect.
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/721e1660-04dc-42b7-8d6e-14799afe2165.png)
 
 Open setup.sh file.
@@ -92,14 +91,13 @@ export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
                             <NetworkInterface name="enp3s0" priority="default" multicast="default" />
                         </Interfaces></General></Domain></CycloneDDS>'
 ```
-where "enp3s0" is the network interface name of unitree robot connected.
-Modify it to the corresponding network interface according to the actual situation. 
+where "enp3s0" is the network interface name the unitree robotis using. Modify it to the corresponding network interface according to the actual situation. 
 
-Source the environment to setup the ROS2 support of Unitree robot: 
+Source the environment to setup ROS2 support of the Unitree robot: 
 ```bash
 source ~/unitree_ros2/setup.sh
 ```
-If you don't want to source the bash script every time when a new terminal opens, you can write the content of bash script into ~/.bashrc, but attention should be paid when there are multiple ROS environments coexisting in the system.
+If you don't want to source the bash script every time when a new terminal opens, you can write the content of bash script into `~/.bashrc`, but attention should be paid when there are multiple ROS environments coexisting in the system.
 
 If your computer is not connected to the robot but you still want to use Unitree ROS2 for simulation and other functions, you can use the local loopback "lo" as the network interface.
 ```bash
@@ -109,7 +107,6 @@ or
 ```bash
 source ~/unitree_ros2/setup_default.sh # No network network interface specified 
 ```
-
 
 ### 2. Connect and test
 After completing the above configuration, it is recommended to restart the computer before conducting the test.
@@ -124,7 +121,6 @@ You can see the following topics:
 
 Input ros2 topic echo /sportmodestate，you can see the data of the topic as shown in the following figure：
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/89214761-6cfb-4b52-bf24-7a5bd9a9806c.png)
-
 
 ### 3. Examples
 Open a terminal and input:
@@ -197,15 +193,15 @@ int16[4] foot_force
 float32[12] foot_position_body //foot positions in body frame
 float32[12] foot_speed_body //foot velcities in body frame
 ```
-For details, see：https://support.unitree.com/home/en/developer/sports_services.
+For details, see https://support.unitree.com/home/en/developer/sports_services.
 
-Complete examples is in /example/src/read_motion_state.cpp. Run in the terminal:
+Complete examples are in `/example/src/read_motion_state.cpp`. Run in the terminal:
 ```bash
 ./install/unitree_ros2_example/bin/read_motion_state 
 ```
 
 ### 2. Low-level state
-The low-level state includes motors states, power information, and other low level states.  Low-level states can be obtained by subscribing "lf/lowstate" or "lowstate" topic. The lowstate msg is defined as:
+The low-level state includes motor states, power information, and other low level states. Low-level states can be obtained by subscribing "lf/lowstate" or "lowstate" topic. The lowstate msg is defined as:
 
 ```C++
 uint8[2] head
@@ -245,12 +241,12 @@ int8 temperature
 uint32 lost
 uint32[2] reserve
 ```
-For details, see: https://support.unitree.com/home/en/developer/Basic_services
-Complete examples is in example/src/read_low_state.cpp. 
+For details, see https://support.unitree.com/home/en/developer/Basic_services
+Complete examples are in `example/src/read_low_state.cpp`. 
 
 ### 3. Wireless controller
 
-Wireless controller state can be obtained by subscribing "/wirelesscontroller" topic. The  wirelesscontroller msg is defiened as:
+The wireless controller state can be obtained by subscribing to the "/wirelesscontroller" topic. The wirelesscontroller msg is defined as:
 
 ```C++
 float32 lx // left joystick x, range [-1.0~1.0]
@@ -261,12 +257,12 @@ uint16 keys // key values
 ```
 For details, see: https://support.unitree.com/home/en/developer/Get_remote_control_status
 
-Complete examples is in example/src/read_wireless_controller.cpp.
-
+Complete examples are in example/src/read_wireless_controller.cpp.
 
 ## Robot control
+
 ### 1. Sportmode 
-Sportmode control is implemented by request/response mechanism. Sportmode control  can be achieved by sending unitree_api::msg::Request msg to the "/api/sport/request" topic.
+Sportmode control is implemented by a request/response mechanism. Sportmode control can be achieved by sending unitree_api::msg::Request msg to the "/api/sport/request" topic.
 
 The Request msg for different sportmode interfaces can be obtained by the SportClient (/example/src/common/ros2_sport_client.cpp) class. For example, control the robot to reach a desired attitude: 
 ```C++
@@ -281,11 +277,10 @@ req_puber->publish(req); // Publish request msg
 ```
 For details about SportClient：https://support.unitree.com/home/en/developer/sports_services
 
-Complete examples is in：example/src/sport_mode_ctrl.cpp. Run ./install/unitree_ros2_example/bin/sport_mode_ctrl in terminal. After 1 second of program startup, the robot will walk back and forth in the x direction.
-
+Complete examples are in example/src/sport_mode_ctrl.cpp. Run `./install/unitree_ros2_example/bin/sport_mode_ctrl` in the terminal. After 1 second of program startup, the robot will walk back and forth in the x direction.
 
 ### 2. Motor control
-The torque, position and velocity control of motor can be implemented by subscribing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
+The torque, position, and velocity control of motor can be implemented by subscribing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
 ```C++
 uint8[2] head
 uint8 level_flag
@@ -317,15 +312,15 @@ For details about low_cmd：https://support.unitree.com/home/en/developer/Basic_
 Complete examples is in：example/src/low_level_ctrl.cpo. Run ./install/unitree_ros2_example/bin/sport_mode_ctrl in terminal. The hip motor and calf motor of the RL leg will rotate to the corresponding joint angle.
 
 ## Rviz
-We can also use rviz to visualize Unitree robot data.The following is an example of visualizing robot lidar data:
+You can also use `rviz` to visualize Unitree robot data. The following is an example of visualizing robot lidar data:
 
-Firstly, list all topics：
+First, list all topics：
 ```bash
 ros2 topic list
 ```
 ![image](https://z1.ax1x.com/2023/10/20/piFtteJ.png)
 
-We can find the topic of lida：
+We can find the topic of lidar：
 ```bash
 utlidar/cloud
 ```
@@ -336,14 +331,11 @@ ros2 topic echo --no-arr /utlidar/cloud
 where frame_id: utlidar_lidar
 ![image](https://z1.ax1x.com/2023/10/20/piFtdF1.png)
 
-Finally, run rviz：
+Finally, run `rviz`：
 ```
 ros2 run rviz2 rviz2
 ```
-Add Pointcloud topic: utlidar/cloud in rviz2 and modify Fixed frame to utlidar_lidar. Then, the lidar data is displayed in rviz2. 
-
+Add Pointcloud topic: utlidar/cloud in `rviz2` and modify "Fixed frame" to "utlidar_lidar". Then, the lidar data are displayed in `rviz2`. 
 
 ![image](https://z1.ax1x.com/2023/10/20/piFtsyD.png)
 ![image](https://z1.ax1x.com/2023/10/20/piFtyOe.png)
-
-
