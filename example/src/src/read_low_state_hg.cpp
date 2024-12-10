@@ -2,14 +2,12 @@
  * This example demonstrates how to use ROS2 to receive low states of unitree go2 robot
  **/
 #include "rclcpp/rclcpp.hpp"
-#include "unitree_go/msg/low_state.hpp"
-#include "unitree_go/msg/imu_state.hpp"
-#include "unitree_go/msg/motor_state.hpp"
+#include "unitree_hg/msg/low_state.hpp"
+#include "unitree_hg/msg/imu_state.hpp"
+#include "unitree_hg/msg/motor_state.hpp"
 
 #define INFO_IMU 1        // Set 1 to info IMU states
 #define INFO_MOTOR 1      // Set 1 to info motor states
-#define INFO_FOOT_FORCE 1 // Set 1 to info foot force states
-#define INFO_BATTERY 1    // Set 1 to info battery states
 
 #define HIGH_FREQ 1 // Set 1 to subscribe to low states with high frequencies (500Hz)
 
@@ -21,18 +19,18 @@ public:
   low_state_suber() : Node("low_state_suber")
   {
     // suber is set to subscribe "/lowcmd" or  "lf/lowstate" (low frequencies) topic
-    auto topic_name = "hf/lowstate";
+    auto topic_name = "lf/lowstate";
     if (HIGH_FREQ)
     {
       topic_name = "lowstate";
     }
     // The suber  callback function is bind to low_state_suber::topic_callback
-    suber = this->create_subscription<unitree_go::msg::LowState>(
+    suber = this->create_subscription<unitree_hg::msg::LowState>(
         topic_name, 10, std::bind(&low_state_suber::topic_callback, this, _1));
   }
 
 private:
-  void topic_callback(unitree_go::msg::LowState::SharedPtr data)
+  void topic_callback(unitree_hg::msg::LowState::SharedPtr data)
   {
 
     if (INFO_IMU)
@@ -67,41 +65,13 @@ private:
                     i, motor[i].q, motor[i].dq, motor[i].ddq, motor[i].tau_est);
       }
     }
-
-    if (INFO_FOOT_FORCE)
-    {
-      // Info foot force value (int not true value)
-      for (int i = 0; i < 4; i++)
-      {
-        foot_force[i] = data->foot_force[i];
-        foot_force_est[i] = data->foot_force_est[i];
-      }
-
-      RCLCPP_INFO(this->get_logger(), "Foot force -- foot0: %d; foot1: %d; foot2: %d; foot3: %d",
-                  foot_force[0], foot_force[1], foot_force[2], foot_force[3]);
-      RCLCPP_INFO(this->get_logger(), "Estimated foot force -- foot0: %d; foot1: %d; foot2: %d; foot3: %d",
-                  foot_force_est[0], foot_force_est[1], foot_force_est[2], foot_force_est[3]);
-    }
-
-    if (INFO_BATTERY)
-    {
-      // Info battery states
-      // battery current
-      // battery voltage
-      battery_current = data->power_a;
-      battery_voltage = data->power_v;
-
-      RCLCPP_INFO(this->get_logger(), "Battery state -- current: %f; voltage: %f", battery_current, battery_voltage);
-    }
   }
 
   // Create the suber  to receive low state of robot
-  rclcpp::Subscription<unitree_go::msg::LowState>::SharedPtr suber;
+  rclcpp::Subscription<unitree_hg::msg::LowState>::SharedPtr suber;
 
-  unitree_go::msg::IMUState imu;         // Unitree go2 IMU message
-  unitree_go::msg::MotorState motor[12]; // Unitree go2 motor state message
-  int16_t foot_force[4];                 // External contact force value (int)
-  int16_t foot_force_est[4];             // Estimated  external contact force value (int)
+  unitree_hg::msg::IMUState imu;         // Unitree hg IMU message
+  unitree_hg::msg::MotorState motor[35]; // Unitree hg motor state message
   float battery_voltage;                 // Battery voltage
   float battery_current;                 // Battery current
 };

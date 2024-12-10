@@ -22,6 +22,7 @@ link_directories(src)
 set (
   DEPENDENCY_LIST
   unitree_go
+  unitree_hg
   unitree_api
   rclcpp
   std_msgs
@@ -31,20 +32,25 @@ set (
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(unitree_go REQUIRED)
+find_package(unitree_hg REQUIRED)
 find_package(unitree_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 
 add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
+add_executable(low_level_ctrl_hg src/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
 add_executable(read_low_state src/read_low_state.cpp)
+add_executable(read_low_state_hg src/read_low_state_hg.cpp)
 add_executable(read_motion_state src/read_motion_state.cpp)
 add_executable(read_wireless_controller src/read_wireless_controller.cpp)
 #add_executable(record_bag src/record_bag.cpp)
 add_executable(sport_mode_ctrl src/sport_mode_ctrl.cpp src/common/ros2_sport_client.cpp)
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
+ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
 ament_target_dependencies(read_low_state ${DEPENDENCY_LIST})
+ament_target_dependencies(read_low_state_hg ${DEPENDENCY_LIST})
 ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
 ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
 #ament_target_dependencies(record_bag ${DEPENDENCY_LIST})
@@ -53,7 +59,9 @@ ament_target_dependencies(sport_mode_ctrl ${DEPENDENCY_LIST})
 
 install(TARGETS 
         low_level_ctrl
+        low_level_ctrl_hg
         read_low_state
+        read_low_state_hg
         read_motion_state
         read_wireless_controller
         sport_mode_ctrl

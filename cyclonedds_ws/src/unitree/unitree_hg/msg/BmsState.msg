@@ -1,0 +1,13 @@
+uint8 version_high
+uint8 version_low
+uint8 fn
+uint16[40] cell_vol
+uint32[3] bmsvoltage
+int32 current
+uint8 soc
+uint8 soh
+int16[12] temperature
+uint16 cycle
+uint16 manufacturer_date
+uint32[5] bmsstate
+uint32[3] reserve
