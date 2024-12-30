@@ -39,7 +39,7 @@ find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 
 add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
-add_executable(low_level_ctrl_hg src/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
+add_executable(low_level_ctrl_hg src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
 add_executable(read_low_state src/read_low_state.cpp)
 add_executable(read_low_state_hg src/read_low_state_hg.cpp)
 add_executable(read_motion_state src/read_motion_state.cpp)
