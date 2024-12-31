@@ -1,5 +1,5 @@
 /**
- * This example demonstrates how to use ROS2 to send low-level motor commands of unitree h1_2 robot
+ * This example demonstrates how to use ROS2 to send low-level motor commands of unitree g1 robot
  **/
 #include "rclcpp/rclcpp.hpp"
 #include "unitree_hg/msg/low_cmd.hpp"
@@ -11,48 +11,48 @@
 #define INFO_MOTOR 0      // Set 1 to info motor states
 #define HIGH_FREQ 1 // Set 1 to subscribe to low states with high frequencies (500Hz)
 
-const int H1_2_NUM_MOTOR = 27;
-
 enum PRorAB { PR = 0, AB = 1 };
 
 using std::placeholders::_1;
 
+const int G1_NUM_MOTOR = 29;
 
-enum H1_2_JointIndex {
-  // legs
-  LeftHipYaw = 0,
-  LeftHipPitch = 1,
-  LeftHipRoll = 2,
+enum G1JointIndex {
+  LeftHipPitch = 0,
+  LeftHipRoll = 1,
+  LeftHipYaw = 2,
   LeftKnee = 3,
   LeftAnklePitch = 4,
   LeftAnkleB = 4,
   LeftAnkleRoll = 5,
   LeftAnkleA = 5,
-  RightHipYaw = 6,
-  RightHipPitch = 7,
-  RightHipRoll = 8,
+  RightHipPitch = 6,
+  RightHipRoll = 7,
+  RightHipYaw = 8,
   RightKnee = 9,
   RightAnklePitch = 10,
   RightAnkleB = 10,
   RightAnkleRoll = 11,
   RightAnkleA = 11,
-  // torso
   WaistYaw = 12,
-  // arms
-  LeftShoulderPitch = 13,
-  LeftShoulderRoll = 14,
-  LeftShoulderYaw = 15,
-  LeftElbow = 16,
-  LeftWristRoll = 17,
-  LeftWristPitch = 18,
-  LeftWristYaw = 19,
-  RightShoulderPitch = 20,
-  RightShoulderRoll = 21,
-  RightShoulderYaw = 22,
-  RightElbow = 23,
-  RightWristRoll = 24,
-  RightWristPitch = 25,
-  RightWristYaw = 26
+  WaistRoll = 13,        // NOTE INVALID for g1 23dof/29dof with waist locked
+  WaistA = 13,           // NOTE INVALID for g1 23dof/29dof with waist locked
+  WaistPitch = 14,       // NOTE INVALID for g1 23dof/29dof with waist locked
+  WaistB = 14,           // NOTE INVALID for g1 23dof/29dof with waist locked
+  LeftShoulderPitch = 15,
+  LeftShoulderRoll = 16,
+  LeftShoulderYaw = 17,
+  LeftElbow = 18,
+  LeftWristRoll = 19,
+  LeftWristPitch = 20,   // NOTE INVALID for g1 23dof
+  LeftWristYaw = 21,     // NOTE INVALID for g1 23dof
+  RightShoulderPitch = 22,
+  RightShoulderRoll = 23,
+  RightShoulderYaw = 24,
+  RightElbow = 25,
+  RightWristRoll = 26,
+  RightWristPitch = 27,  // NOTE INVALID for g1 23dof
+  RightWristYaw = 28     // NOTE INVALID for g1 23dof
 };
 
 
@@ -91,7 +91,7 @@ private:
         time_ += control_dt_;
         low_command.mode_pr = mode_;
         low_command.mode_machine = mode_machine;
-        for (int i = 0; i < H1_2_NUM_MOTOR; ++i) 
+        for (int i = 0; i < G1_NUM_MOTOR; ++i) 
         {
             low_command.motor_cmd[i].mode = 1;  // 1:Enable, 0:Disable
             low_command.motor_cmd[i].tau = 0.0;
@@ -104,7 +104,7 @@ private:
         if (time_ < duration_) 
         {
             // [Stage 1]: set robot to zero posture
-            for (int i = 0; i < H1_2_NUM_MOTOR; ++i) {
+            for (int i = 0; i < G1_NUM_MOTOR; ++i) {
                 double ratio = clamp(time_ / duration_, 0.0, 1.0);
                 low_command.motor_cmd[i].q =
                     (1. - ratio) * motor[i].q;
@@ -129,40 +129,40 @@ private:
             float Kp_Roll = 80;
             float Kd_Roll = 1;
 
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnklePitch].q = L_P_des; 
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnklePitch].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnklePitch].kp = Kp_Pitch;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnklePitch].kd = Kd_Pitch;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnklePitch].tau = 0;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnkleRoll].q = L_R_des;  
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnkleRoll].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnkleRoll].kp = Kp_Roll;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnkleRoll].kd = Kd_Roll;
-            low_command.motor_cmd[H1_2_JointIndex::LeftAnkleRoll].tau = 0;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnklePitch].q = R_P_des;  
-            low_command.motor_cmd[H1_2_JointIndex::RightAnklePitch].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnklePitch].kp = Kp_Pitch;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnklePitch].kd = Kd_Pitch;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnklePitch].tau = 0;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnkleRoll].q = R_R_des;  
-            low_command.motor_cmd[H1_2_JointIndex::RightAnkleRoll].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnkleRoll].kp = Kp_Roll;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnkleRoll].kd = Kd_Roll;
-            low_command.motor_cmd[H1_2_JointIndex::RightAnkleRoll].tau = 0;
+            low_command.motor_cmd[G1JointIndex::LeftAnklePitch].q = L_P_des; 
+            low_command.motor_cmd[G1JointIndex::LeftAnklePitch].dq = 0;
+            low_command.motor_cmd[G1JointIndex::LeftAnklePitch].kp = Kp_Pitch;
+            low_command.motor_cmd[G1JointIndex::LeftAnklePitch].kd = Kd_Pitch;
+            low_command.motor_cmd[G1JointIndex::LeftAnklePitch].tau = 0;
+            low_command.motor_cmd[G1JointIndex::LeftAnkleRoll].q = L_R_des;  
+            low_command.motor_cmd[G1JointIndex::LeftAnkleRoll].dq = 0;
+            low_command.motor_cmd[G1JointIndex::LeftAnkleRoll].kp = Kp_Roll;
+            low_command.motor_cmd[G1JointIndex::LeftAnkleRoll].kd = Kd_Roll;
+            low_command.motor_cmd[G1JointIndex::LeftAnkleRoll].tau = 0;
+            low_command.motor_cmd[G1JointIndex::RightAnklePitch].q = R_P_des;  
+            low_command.motor_cmd[G1JointIndex::RightAnklePitch].dq = 0;
+            low_command.motor_cmd[G1JointIndex::RightAnklePitch].kp = Kp_Pitch;
+            low_command.motor_cmd[G1JointIndex::RightAnklePitch].kd = Kd_Pitch;
+            low_command.motor_cmd[G1JointIndex::RightAnklePitch].tau = 0;
+            low_command.motor_cmd[G1JointIndex::RightAnkleRoll].q = R_R_des;  
+            low_command.motor_cmd[G1JointIndex::RightAnkleRoll].dq = 0;
+            low_command.motor_cmd[G1JointIndex::RightAnkleRoll].kp = Kp_Roll;
+            low_command.motor_cmd[G1JointIndex::RightAnkleRoll].kd = Kd_Roll;
+            low_command.motor_cmd[G1JointIndex::RightAnkleRoll].tau = 0;
 
             double max_wrist_roll_angle = 0.5;  // [rad]
             double WristRoll_des = max_wrist_roll_angle * std::sin(2.0 * M_PI * t);
-            low_command.motor_cmd[H1_2_JointIndex::LeftWristRoll].q = WristRoll_des;  
-            low_command.motor_cmd[H1_2_JointIndex::LeftWristRoll].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::LeftWristRoll].kp = 50;
-            low_command.motor_cmd[H1_2_JointIndex::LeftWristRoll].kd = 1;
-            low_command.motor_cmd[H1_2_JointIndex::LeftWristRoll].tau = 0;
+            low_command.motor_cmd[G1JointIndex::LeftWristRoll].q = WristRoll_des;  
+            low_command.motor_cmd[G1JointIndex::LeftWristRoll].dq = 0;
+            low_command.motor_cmd[G1JointIndex::LeftWristRoll].kp = 50;
+            low_command.motor_cmd[G1JointIndex::LeftWristRoll].kd = 1;
+            low_command.motor_cmd[G1JointIndex::LeftWristRoll].tau = 0;
 
-            low_command.motor_cmd[H1_2_JointIndex::RightWristRoll].q = WristRoll_des; 
-            low_command.motor_cmd[H1_2_JointIndex::RightWristRoll].dq = 0;
-            low_command.motor_cmd[H1_2_JointIndex::RightWristRoll].kp = 50;
-            low_command.motor_cmd[H1_2_JointIndex::RightWristRoll].kd = 1;
-            low_command.motor_cmd[H1_2_JointIndex::RightWristRoll].tau = 0;
+            low_command.motor_cmd[G1JointIndex::RightWristRoll].q = WristRoll_des; 
+            low_command.motor_cmd[G1JointIndex::RightWristRoll].dq = 0;
+            low_command.motor_cmd[G1JointIndex::RightWristRoll].kp = 50;
+            low_command.motor_cmd[G1JointIndex::RightWristRoll].kd = 1;
+            low_command.motor_cmd[G1JointIndex::RightWristRoll].tau = 0;
 
         }
         get_crc(low_command); 
@@ -173,7 +173,7 @@ private:
     {
         mode_machine = (int)message->mode_machine;
         imu = message->imu_state;
-        for (int i = 0; i < H1_2_NUM_MOTOR; i++)
+        for (int i = 0; i < G1_NUM_MOTOR; i++)
         {
             motor[i] = message->motor_state[i];
         }
@@ -199,7 +199,7 @@ private:
             // dq: angluar velocity (rad/s)
             // ddq: angluar acceleration (rad/(s^2))
             // tau_est: Estimated external torque
-            for (int i = 0; i < H1_2_NUM_MOTOR; i++)
+            for (int i = 0; i < G1_NUM_MOTOR; i++)
             {
                 motor[i] = message->motor_state[i];
                 RCLCPP_INFO(this->get_logger(), "Motor state -- num: %d; q: %f; dq: %f; ddq: %f; tau: %f",
@@ -220,7 +220,7 @@ private:
     rclcpp::Subscription<unitree_hg::msg::LowState>::SharedPtr lowstate_subscriber_; // ROS2 Subscriber
     unitree_hg::msg::LowCmd low_command;                                             // Unitree hg lowcmd message
     unitree_hg::msg::IMUState imu;                                                   // Unitree hg IMU message
-    unitree_hg::msg::MotorState motor[H1_2_NUM_MOTOR];                               // Unitree hg motor state message
+    unitree_hg::msg::MotorState motor[G1_NUM_MOTOR];                               // Unitree hg motor state message
     double control_dt_ = 0.002;                                                      // 2ms
     int timer_dt = control_dt_*1000;
     double time_;                                                                    // Running time count
