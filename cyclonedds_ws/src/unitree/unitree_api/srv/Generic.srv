@@ -1,0 +1,7 @@
+int64 api_id
+string parameter
+uint8[] binary
+---
+int32 code
+string data
+uint8[] binary

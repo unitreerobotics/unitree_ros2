@@ -1,3 +1,0 @@
-RequestIdentity identity
-RequestLease lease
-RequestPolicy policy

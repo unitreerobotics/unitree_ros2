@@ -1,2 +1,0 @@
-RequestIdentity identity
-ResponseStatus status
