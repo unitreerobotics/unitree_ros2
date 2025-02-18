@@ -1,5 +1,5 @@
 /**
- * This example demonstrates how to use ROS2 to call g1 loco client api of unitree go2 robot
+ * This example demonstrates how to use ROS2 to call g1 loco client api of unitree g1 robot
  **/
 #include "g1_loco_client_impl.hpp"
 
