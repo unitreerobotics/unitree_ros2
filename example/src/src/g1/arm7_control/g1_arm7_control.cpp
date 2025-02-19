@@ -1,7 +1,6 @@
 /**
- * This example demonstrates how to use ROS2 to send arm control commands of unitree g1 robot
+ * This example demonstrates how to use ROS2 to control arm commands of unitree g1 robot
  **/
-#include <algorithm>
 #include "rclcpp/rclcpp.hpp"
 #include "unitree_hg/msg/low_cmd.hpp"
 #include "unitree_hg/msg/low_state.hpp"
@@ -104,11 +103,11 @@ public:
     {
         auto topic_name = "lowstate";
 
-        // The suber  callback function is bind to low_level_cmd_sender::topic_callback
+        //  bind to g1_arm7_control_sender::LowStateHandler for subscribe "lowstate" topic
         mLowstateSubscriber = this->create_subscription<unitree_hg::msg::LowState>(
             topic_name, 10, std::bind(&g1_arm7_control_sender::LowStateHandler, this, _1));
 
-        // the lowcmd_publisher_ is set to subscribe "/lowcmd" topic
+        // the mLowcmdPublisher is set to subscribe "/arm_sdk" topic
         mLowcmdPublisher = this->create_publisher<unitree_hg::msg::LowCmd>("/arm_sdk", 10);
     }
 
@@ -126,16 +125,16 @@ private:
     {
         // get current joint position
         std::array<float, 17> current_jpos{};
-        std::cout << "Current joint position: ";
+        std::ostringstream oss;
         for (size_t i = 0; i < mLowCmdParam.arm_joints.size(); ++i)
         {
             current_jpos.at(i) = mStateMsg->motor_state.at(mLowCmdParam.arm_joints.at(i)).q;
-            std::cout << current_jpos.at(i) << " ";
+            oss << current_jpos.at(i) << " ";
         }
-        std::cout << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Current joint position: %s", oss.str().c_str());
 
         // set init position
-        std::cout << "Initailizing arms ...";
+        RCLCPP_INFO(this->get_logger(), "Initailizing arms ...");
 
         int init_time_steps = static_cast<int>(mLowCmdParam.init_time / mLowCmdParam.control_dt);
         for (int i = 0; i < init_time_steps; ++i)
@@ -144,7 +143,7 @@ private:
             mLowCmdParam.weight = 1.0;
             mCmd.motor_cmd.at(JointIndex::kNotUsedJoint).set__q(mLowCmdParam.weight);
             float phase = 1.0 * i / init_time_steps;
-            std::cout << "Phase: " << phase << std::endl;
+            RCLCPP_INFO(this->get_logger(), "Phase: %f", phase);
 
             // set control joints
             for (size_t j = 0; j < mLowCmdParam.init_pos.size(); ++j)
@@ -161,13 +160,12 @@ private:
             // sleep
             std::this_thread::sleep_for(std::chrono::milliseconds(mLowCmdParam.sleep_time));
         }
-
-        std::cout << "Init Arms Done!" << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Init Arms Done!");
     }
 
     void LiftArmsUp()
     {
-        std::cout << "Start lift arms up!" << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Start lift arms up!");
         for (int i = 0; i < mLowCmdParam.num_time_steps; ++i)
         {
             // update jpos des
@@ -198,7 +196,7 @@ private:
 
     void PutArmsDown()
     {
-        std::cout << "Start lift arms down!" << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Start lift arms down!");
         for (int32_t i = 0; i < mLowCmdParam.num_time_steps; ++i)
         {
             // update jpos des
@@ -229,7 +227,7 @@ private:
 
     void StopControl()
     {
-        std::cout << "Stoping arm ctrl ...";
+        RCLCPP_INFO(this->get_logger(), "Stoping arm ctrl ...");
         float stop_time = 2.0f;
         int stop_time_steps = static_cast<int>(stop_time / mLowCmdParam.control_dt);
 
