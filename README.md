@@ -3,9 +3,9 @@ Unitree robot ROS2 support
 [TOC]
 
 # Introduction
-Unitree SDK2 implements an easy-to-use robot communication mechanism based on Cyclonedds, which enable developers to achieve robot communication and control (**Supports Unitree Go2, B2, and H1**). See: https://github.com/unitreerobotics/unitree_sdk2
+Unitree SDK2 implements an easy-to-use robot communication mechanism based on Cyclonedds, which enable developers to achieve robot communication and control (**Supports Unitree Go2, B2, H1 and G1**). See: https://github.com/unitreerobotics/unitree_sdk2
 
-DDS is alos used in ROS2 as a communication mechanism. Therefore, the underlying layers of Unitree Go2, B2, and H1 robots can be compatible with ROS2. ROS2 msg can be direct used for communication and control of Unitree robot without wrapping the SDK interface.
+DDS is alos used in ROS2 as a communication mechanism. Therefore, the underlying layers of Unitree Go2, B2, H1 and G1 robots can be compatible with ROS2. ROS2 msg can be direct used for communication and control of Unitree robot without wrapping the SDK interface.
 
 # Configuration
 ## System requirements
@@ -149,7 +149,7 @@ You can see the robot status information output from the terminal:
 [INFO] [1697525196.316189064] [motion_state_suber]: Gait state -- gait type: 1; raise height: 0.090000
 ```
 
-# Usage
+# Go2 Usage
 ## State acquisition
 ### 1. Sportmode state
 Sportmode state includes position, velcity, foot position, and other motion states of the robot. The acquisition of sportmode state can be achieved by subscribing "lf/sportmodestate" or "sportmodestate" topic, where "lf" represents low frequency. The msg of sportmodestate is defined as：
@@ -265,26 +265,8 @@ Complete examples is in example/src/read_wireless_controller.cpp.
 
 
 ## Robot control
-### 1. Sportmode 
-Sportmode control is implemented by request/response mechanism. Sportmode control  can be achieved by sending unitree_api::msg::Request msg to the "/api/sport/request" topic.
 
-The Request msg for different sportmode interfaces can be obtained by the SportClient (/example/src/common/ros2_sport_client.cpp) class. For example, control the robot to reach a desired attitude: 
-```C++
- //Create a ros2 pubilsher 
-rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber = this->create_publisher<unitree_api::msg::Request>("/api/sport/request", 10);
-
-SportClient sport_req; //Sportclient
-unitree_api::msg::Request req; //Sportmode request msg
-sport_req.Euler(req,roll,pitch,yaw); //Get Sportmode request msg from Sportclient 
-
-req_puber->publish(req); // Publish request msg
-```
-For details about SportClient：https://support.unitree.com/home/en/developer/sports_services
-
-Complete examples is in：example/src/sport_mode_ctrl.cpp. Run ./install/unitree_ros2_example/bin/sport_mode_ctrl in terminal. After 1 second of program startup, the robot will walk back and forth in the x direction.
-
-
-### 2. Motor control
+### 1. Motor control
 The torque, position and velocity control of motor can be implemented by subscribing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
 ```C++
 uint8[2] head
@@ -346,4 +328,100 @@ Add Pointcloud topic: utlidar/cloud in rviz2 and modify Fixed frame to utlidar_l
 ![image](https://z1.ax1x.com/2023/10/20/piFtsyD.png)
 ![image](https://z1.ax1x.com/2023/10/20/piFtyOe.png)
 
+# G1 Usage
+
+## State acquisition
+
+### 1. Low-level state
+
+The low-level state includes motors states and other low level states.  Low-level states can be obtained by subscribing "lf/lowstate" or "lowstate" topic. The lowstate msg is defined as:
+
+```c++
+uint32[2] version
+uint8 mode_pr
+uint8 mode_machine
+uint32 tick
+IMUState imu_state                          //IMU
+MotorState[35] motor_state                  //Motor state
+uint8[40] wireless_remote
+uint32[4] reserve
+uint32 crc
+```
+
+where MotorState are defined as：
+
+```c++
+uint8 mode                 // Current motor mode
+float32 q                  // Joint feedback position (rad)
+float32 dq                 // Joint feedback velocity (rad/s)
+float32 ddq                // Joint feedback acceleration (rad/s^2)
+float32 tau_est            // Joint feedback torque
+int16[2] temperature       // Motor temperature (surface and winding)
+float32 vol                // Motor terminal voltage
+uint32[2] sensor           // Sensor data
+uint32 motorstate          // Motor state data
+uint32[4] reserve          // Reserved
+```
+
+For details, see: https://support.unitree.com/home/en/G1_developer/basic_services_interface
+Complete examples is in example/src/src/read_low_state_hg.cpp. 
+
+## Robot control
+
+### 1.Sportservice
+
+The motion commands for the G1 robot are implemented through ROS2 services. By creating a motion control client and invoking the motion control interfaces, high-level motion control can be achieved. The creation of the motion control client and the invocation of different motion interfaces can be accomplished using the LocoClient (example/src/src/client/g1_loco_client_impl.cpp). For example, it can be used to retrieve the current motion control mode of the G1.
+
+```c++
+auto client = std::make_shared<LocoClient>();
+int32_t fsm_id;
+ret = client->GetFsmId(fsm_id);
+std::cout << "ret : " << ret << " , current fsm_id: " << fsm_id << std::endl;
+```
+
+For details about LocoClient：https://support.unitree.com/home/en/G1_developer/sport_services_interface
+
+Complete examples is in：example/src/src/g1/lococlient/g1_loco_client.cpp. By running the following command in the terminal, you can achieve in-place turning for the G1 robot:
+
+```shell
+./install/unitree_ros2_example/bin/g1_loco_client --move="0 0 0.5"
+```
+
+### 2. Motor control
+
+The torque, position and velocity control of motor can be implemented by publishing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
+
+```c++
+uint8 mode_pr
+uint8 mode_machine
+MotorCmd[35] motor_cmd      // Motor command
+uint32[4] reserve
+uint32 crc
+```
+
+where motor_cmd is defined as:
+
+```c++
+uint8 mode           // Motor control mode 0:Disable, 1:Enable
+float32 q            // Target joint position
+float32 dq           // Target joint velocity
+float32 tau          // Feedforward torque
+float32 kp           // Joint stiffness coefficient
+float32 kd           // Joint damping coefficient
+uint32 reserve       // Reserved
+```
+
+For details about low_cmd：https://support.unitree.com/home/en/G1_developer/basic_services_interface
+
+Complete example of arm control is in：example/src/src/g1/arm7_control/g1_arm7_control.cpp. After compilation, execute the following command in the terminal, and the arm motors will rotate to the corresponding joint angles.For details about ArmControl：https://support.unitree.com/home/en/G1_developer/arm_control_routine
+
+```shell
+./install/unitree_ros2_example/bin/g1_arm7_control
+```
+
+Complete example of ankle Control is in：example/src/src/g1/ankle_swing/g1_ankle_swing.cpp. After compilation, execute the following command in the terminal, the robot will reset from any initial joint position to the zero position, then control the ankle joint oscillation of the G1 robot in two different modes, and print Euler angle data at a certain frequency.For details about AnkleControl：https://support.unitree.com/home/en/G1_developer/basic_motion_routine
+
+```shell
+./install/unitree_ros2_example/bin/g1_ankle_swing
+```
 

@@ -1,7 +1,7 @@
 [TOC]
 # Unitree 机器人ros2支持
-Unitree SDK2基于cyclonedds实现了一个易用的机器人数据通信机制，应用开发者可以利用这一接口实现机器人的数据通讯和指令控制(**支持Go2、B2和H1**)。 https://github.com/unitreerobotics/unitree_sdk2
-ROS2也使用DDS作为通讯工具，因此Go2、B2和H1机器人的底层可以兼容ros2，使用ros2自带的  msg 直接进行通讯和控制，而无需通过sdk接口转发。
+Unitree SDK2基于cyclonedds实现了一个易用的机器人数据通信机制，应用开发者可以利用这一接口实现机器人的数据通讯和指令控制(**支持Go2、B2、H1和G1**)。 https://github.com/unitreerobotics/unitree_sdk2
+ROS2也使用DDS作为通讯工具，因此Go2、B2、H1和G1机器人的底层可以兼容ros2，使用ros2自带的  msg 直接进行通讯和控制，而无需通过sdk接口转发。
 
 # 环境配置
 ## 系统要求
@@ -40,7 +40,7 @@ sudo apt install ros-foxy-rosidl-generator-dds-idl
 ```bash
 sudo apt install gedit
 sudo gedit ~/.bashrc
-``` 
+```
 在弹出的窗口中，注释掉ros2相关的环境变量，例如：
 ```bash
 # source /opt/ros/foxy/setup.bash 
@@ -113,6 +113,7 @@ source ~/unitree_ros2/setup_default.sh # 不指定网卡
 ### 2. 连接测试 
 完成上述配置后，建议重启一下电脑再进行测试。
 确保机器人连接正确，打开终端输入: 
+
 ```bash
 source ~/unitree_ros2/setup.sh
 ros2 topic list
@@ -146,8 +147,8 @@ colcon build
 [INFO] [1697525196.316189064] [motion_state_suber]: Gait state -- gait type: 1; raise height: 0.090000
 ```
 
-# 例程和使用
-Go2机器人底层采用与ROS2兼容的dds通信方式，当安装和配置好Unitree Go2 ROS2环境后，可以通过订阅ROS2的topic实现机器人状态的获取和指令控制。
+# Go2例程和使用
+Go2机器人底层采用与ROS2兼容的dds通信方式，当安装和配置好Unitree ROS2环境后，可以通过订阅ROS2的topic实现机器人状态的获取和指令控制。
 ## 状态获取
 ### 1. 高层状态获取
 高层状态为机器人的速度、位置、足端位置等与运动相关的状态。高层状态的获取可通过订阅"lf/sportmodestate"或"sportmodestate" topic 实现，其中"lf"表示低频率。高层状态的msg定义如下：
@@ -260,25 +261,8 @@ uint16 keys //键值
 在终端中运行./install/unitree_ros2_example/bin/read_low_state，可查看遥控器状态获取例程的运行结果。
 
 ## 机器人控制
-### 1. 运动控制
-Go2机器人的运动指令是通过请求响应的方式实现的，通过订阅"/api/sport/request"，并发送运动unitree_api::msg::Request消息可以实现高层的运动控制。其中不同运动接口的Request消息可调用SportClient(位于/example/src/common/ros2_sport_client.cpp)类来获取，例如实现Go2的姿态控制：
-```C++
- //创建一个ros2 pubilsher
-rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber = this->create_publisher<unitree_api::msg::Request>("/api/sport/request", 10);
 
-SportClient sport_req;//实例化一个sportclient
-unitree_api::msg::Request req; //创建一个运动请求msg
-sport_req.Euler(req,roll,pitch,yaw); //获取欧拉角运动请求消息，并赋值给req
-
-req_puber->publish(req); //发布数据
-```
-关于SportClient运动控制接口的具体解释可参考：https://support.unitree.com/home/zh/developer/sports_services
-
-高层运动控制的完整例程位于：example/src/sport_mode_ctrl.cpp
-在终端中运行./install/unitree_ros2_example/bin/sport_mode_ctrl，等待1s后，机器人会沿着x方向来回走动。
-
-
-### 2. 电机控制
+### 1. 电机控制
 通过订阅"/lowcmd" topic，并发送unitree_go::msg::LowCmd可以实现对电机的力矩、位置、和速度控制。底层控制指令的msg定义如下:
 
 ```C++
@@ -338,5 +322,110 @@ ros2 run rviz2 rviz2
 
 ![image](https://z1.ax1x.com/2023/10/20/piFtsyD.png)
 ![image](https://z1.ax1x.com/2023/10/20/piFtyOe.png)
+
+# G1例程和使用
+
+G1机器人底层采用与ROS2兼容的dds通信方式，当安装和配置好Unitree ROS2环境后，可以通过订阅ROS2的topic实现机器人状态的获取和指令控制。
+
+## 状态获取
+
+### 1. 低层状态获取
+
+低层状态为机器人的关节电机等底层状态。通过订阅"lf/lowstate"或"lowstate" topic，可实现低层状态的获取。低层状态的msg定义如下：
+
+```c++
+uint32[2] version
+uint8 mode_pr
+uint8 mode_machine
+uint32 tick
+IMUState imu_state                          //IMU数据
+MotorState[35] motor_state                  //电机数据
+uint8[40] wireless_remote
+uint32[4] reserve
+uint32 crc
+```
+
+其中MotorState为关节电机的状态信息，其定义如下：
+
+```c++
+uint8 mode                 //电机当前模式
+float32 q                  //关节反馈位置数据，默认为弧度值
+float32 dq                 //关节反馈速度数据
+float32 ddq                //关节反馈加速度数据
+float32 tau_est            //关节反馈力矩数据
+int16[2] temperature       //温度数据
+float32 vol                //电机端电压数据
+uint32[2] sensor           //扩展传感器数据
+uint32 motorstate          //电机状态数据
+uint32[4] reserve          //保留位
+```
+
+低层状态信息的具体解释可参考: https://support.unitree.com/home/zh/G1_developer/basic_services_interface
+读取低层状态的完整例程序位于：example/src/src/read_low_state_hg.cpp
+在终端中运行以下命令，可查看低层状态获取例程的运行结果。
+
+```shell
+./install/unitree_ros2_example/bin/read_low_state_hg
+```
+
+## 机器人控制
+
+### 1. 运动服务
+
+G1机器人的运动指令是通过ros2的service方式实现的，通过创建运控客户端并调用运控接口可以实现高层的运动控制。其中运控客户端的创建和不同运动接口的的调用可使用LocoClient(example/src/src/client/g1_loco_client_impl.cpp)，例如获取G1的运控所在模式：
+
+```c++
+auto client = std::make_shared<LocoClient>();
+int32_t fsm_id;
+ret = client->GetFsmId(fsm_id);
+std::cout << "ret : " << ret << " , current fsm_id: " << fsm_id << std::endl;
+```
+
+关于LocoClient运动控制接口的具体解释可参考：https://support.unitree.com/home/zh/G1_developer/sport_services_interface
+
+高层运动控制的完整例程位于： example/src/src/g1/lococlient/g1_loco_client.cpp在终端中运行以下命令，可实现G1的原地转向
+
+```shell
+./install/unitree_ros2_example/bin/g1_loco_client --move="0 0 0.5"
+```
+
+### 2. 电机控制
+
+通过向"/lowcmd"发送unitree_hg::msg::LowCmd可以实现对电机的力矩、位置、和速度控制。底层控制指令的msg定义如下:
+
+```c++
+uint8 mode_pr
+uint8 mode_machine
+MotorCmd[35] motor_cmd      //电机指令
+uint32[4] reserve
+uint32 crc
+```
+
+其中motor_cmd为电机指令:
+
+```c++
+uint8 mode           //电机控制模式  STOP模式->0x00 ; FOC模式->0x01
+float32 q            //关节目标位置
+float32 dq           //关节目标速度
+float32 tau          //关节目标力矩
+float32 kp           //关节刚度系数
+float32 kd           //关节阻尼系数
+uint32 reserve       //保留位
+```
+
+低层指令的具体解释可参考：https://support.unitree.com/home/zh/G1_developer/basic_services_interface
+
+手臂电机控制的完整例程见example/src/src/g1/arm7_control/g1_arm7_control.cpp，编译后在终端执行以下命令，手臂电机会转动到对应关节角度。具体解释可参考https://support.unitree.com/home/zh/G1_developer/arm_control_routine
+
+```shell
+./install/unitree_ros2_example/bin/g1_arm7_control
+```
+
+踝关节控制的完整例程见example/src/src/g1/ankle_swing/g1_ankle_swing.cpp，编译后在终端执行以下命令，机器人会从任意初始关节位置，复位至零位，然后用两种不同模式控制 G1 机器人踝关节摆动，并且以一定频率打印欧拉角数据。具体解释可参考https://support.unitree.com/home/zh/G1_developer/basic_motion_routine
+
+```shell
+./install/unitree_ros2_example/bin/g1_ankle_swing
+```
+
 
 
