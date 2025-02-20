@@ -6,8 +6,9 @@
 #include "unitree_hg/msg/imu_state.hpp"
 #include "unitree_hg/msg/low_cmd.hpp"
 #include "unitree_hg/msg/low_state.hpp"
-#include "motor_crc_hg.h"
+#include "motion_switch_client_impl.hpp"
 #include "gamepad.hpp"
+#include "motor_crc_hg.h"
 
 using namespace unitree::common;
 using std::placeholders::_1;
@@ -384,11 +385,37 @@ private:
     DataBuffer<ImuState> mImuStateBuffer;
 };
 
+// try to shutdown motion control-related service
+void ShutdownMotionCtrl()
+{
+    auto client = std::make_shared<unitree::ros2::g1::MotionSwitchClient>();
+    std::string form, name;
+    while (client->CheckMode(form, name), !name.empty())
+    {
+        if (client->ReleaseMode() != 0)
+        {
+            std::cout << "Failed to switch to Release Mode" << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
+    std::cout << "Shutdown motion control success" << std::endl;
+}
+
 int main(int argc, char **argv)
 {
-    rclcpp::init(argc, argv);                              // Initialize rclcpp
-    auto node = std::make_shared<g1_ankle_swing_sender>(); // Create a ROS2 node and make share with g1_ankle_swing_sender class
-    rclcpp::spin(node);                                    // Run ROS2 node
-    rclcpp::shutdown();                                    // Exit
+    try
+    {
+        rclcpp::init(argc, argv); // Initialize rclcpp
+        ShutdownMotionCtrl();
+
+        auto node = std::make_shared<g1_ankle_swing_sender>(); // Create a ROS2 node and make share with g1_ankle_swing_sender class
+        rclcpp::spin(node);                                    // Run ROS2 node
+        rclcpp::shutdown();                                    // Exit
+    }
+    catch (const rclcpp::exceptions::RCLError &e)
+    {
+        std::cerr << "RCLError caught: " << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }

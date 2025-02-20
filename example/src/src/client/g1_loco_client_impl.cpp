@@ -1,31 +1,15 @@
 #include "g1_loco_client_impl.hpp"
+#include "client_decl.hpp"
 
 using namespace unitree::ros2::g1;
 
-#define SEND_LOCO_REQUEST(REQUEST_FUNC, ...)                               \
-    if (!wait_service())                                                   \
-    {                                                                      \
-        return -1;                                                         \
-    }                                                                      \
-    auto request = std::make_shared<unitree_api::srv::Generic::Request>(); \
-    mLocoParam.REQUEST_FUNC(__VA_ARGS__ __VA_OPT__(, ) request);           \
-    auto future = mClient->async_send_request(request);
-
-#define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...)                                   \
-    rclcpp::spin_until_future_complete(this->get_node_base_interface(), future);  \
-    if (future.get())                                                             \
-    {                                                                             \
-        return mLocoParam.RESPONSE_FUNC(future.get() __VA_OPT__(, ) __VA_ARGS__); \
-    }                                                                             \
-    else                                                                          \
-    {                                                                             \
-        RCLCPP_ERROR(this->get_logger(), "%s api call failed", __FUNCTION__);     \
-        return -1;                                                                \
-    }
+#define LOCO_SERVICE_NAME "loco"
+#define SEND_LOCO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mClient, mLocoParam, REQUEST_FUNC, __VA_ARGS__)
+#define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mLocoParam, RESPONSE_FUNC, __VA_ARGS__)
 
 LocoClient::LocoClient() : Node("g1_loco_lient")
 {
-    mClient = this->create_client<unitree_api::srv::Generic>("loco");
+    mClient = this->create_client<unitree_api::srv::Generic>(LOCO_SERVICE_NAME);
 }
 
 int32_t LocoClient::GetFsmId(int32_t &fsm_id)
@@ -157,7 +141,8 @@ int32_t LocoClient::Move(float vx, float vy, float vyaw)
 
 int32_t LocoClient::SwitchMoveMode(bool flag)
 {
-    return mContinousMove = flag;
+    mContinousMove = flag;
+    return 0;
 }
 
 int32_t LocoClient::BalanceStand()
@@ -193,14 +178,5 @@ int32_t LocoClient::ShakeHand(int stage)
 
 bool LocoClient::wait_service()
 {
-    while (!mClient->wait_for_service(std::chrono::seconds(1)))
-    {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service to be available...");
-            return false;
-        }
-        RCLCPP_INFO(this->get_logger(), "Waiting for the service to be available...");
-    }
-    return true;
+    WAIT_SERVICE(mClient, LOCO_SERVICE_NAME)
 }

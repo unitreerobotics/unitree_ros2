@@ -2,20 +2,6 @@
 
 #include "unitree_api/srv/generic.hpp"
 
-constexpr int32_t ROBOT_API_ID_LOCO_GET_FSM_ID = 7001;
-constexpr int32_t ROBOT_API_ID_LOCO_GET_FSM_MODE = 7002;
-constexpr int32_t ROBOT_API_ID_LOCO_GET_BALANCE_MODE = 7003;
-constexpr int32_t ROBOT_API_ID_LOCO_GET_SWING_HEIGHT = 7004;
-constexpr int32_t ROBOT_API_ID_LOCO_GET_STAND_HEIGHT = 7005;
-constexpr int32_t ROBOT_API_ID_LOCO_GET_PHASE = 7006; // deprecated
-
-constexpr int32_t ROBOT_API_ID_LOCO_SET_FSM_ID = 7101;
-constexpr int32_t ROBOT_API_ID_LOCO_SET_BALANCE_MODE = 7102;
-constexpr int32_t ROBOT_API_ID_LOCO_SET_SWING_HEIGHT = 7103;
-constexpr int32_t ROBOT_API_ID_LOCO_SET_STAND_HEIGHT = 7104;
-constexpr int32_t ROBOT_API_ID_LOCO_SET_VELOCITY = 7105;
-constexpr int32_t ROBOT_API_ID_LOCO_SET_ARM_TASK = 7106;
-
 namespace unitree
 {
 namespace ros2
@@ -28,11 +14,11 @@ class LocoClientParameter
 public:
     void GetFsmIdReq(const std::shared_ptr<unitree_api::srv::Generic::Request> &req);
 
-    int32_t GetFsmIdRes(const std::shared_ptr<unitree_api::srv::Generic::Response> &res, int &fsm_id);
+    int32_t GetFsmIdRes(const std::shared_ptr<unitree_api::srv::Generic::Response> &res, int32_t &fsm_id);
 
     void GetFsmModeReq(const std::shared_ptr<unitree_api::srv::Generic::Request> &req);
 
-    int32_t GetFsmModeRes(const std::shared_ptr<unitree_api::srv::Generic::Response> &res, int &fsm_mode);
+    int32_t GetFsmModeRes(const std::shared_ptr<unitree_api::srv::Generic::Response> &res, int32_t &fsm_mode);
 
     void GetBalanceModeReq(const std::shared_ptr<unitree_api::srv::Generic::Request> &req);
 

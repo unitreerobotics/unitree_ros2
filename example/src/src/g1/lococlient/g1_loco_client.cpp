@@ -1,5 +1,5 @@
 /**
- * This example demonstrates how to use ROS2 to call g1 loco client api of unitree g1 robot
+ * This example demonstrates how to use ROS2 to call loco client api of unitree g1 robot
  **/
 #include "g1_loco_client_impl.hpp"
 
@@ -42,9 +42,8 @@ void ParseArgv(int argc, char **argv, std::map<std::string, std::string> &args)
     }
 }
 
-std::vector<float> stringToFloatVector(const std::string &str)
+std::vector<float> StringToFloatVector(const std::string &str)
 {
-    std::cout << "stringToFloatVector str : " << str << std::endl;
     std::vector<float> result;
     std::stringstream ss(str);
     float num;
@@ -57,14 +56,10 @@ std::vector<float> stringToFloatVector(const std::string &str)
     return result;
 }
 
-int main(int argc, char **argv)
+int32_t DoWork(const std::shared_ptr<LocoClient> &client, const std::map<std::string, std::string> &args)
 {
-    rclcpp::init(argc, argv);
-    auto client = std::make_shared<LocoClient>();
-
-    std::map<std::string, std::string> args;
-    ParseArgv(argc, argv, args);
-
+    // return 0 if success
+    int32_t ret = 0;
     for (const auto &arg_pair : args)
     {
         std::cout << "Processing command: [" << arg_pair.first << "] with param: ["
@@ -73,38 +68,39 @@ int main(int argc, char **argv)
         if (arg_pair.first == "get_fsm_id")
         {
             int32_t fsm_id;
-            client->GetFsmId(fsm_id);
-            std::cout << "current fsm_id: " << fsm_id << std::endl;
+            ret = client->GetFsmId(fsm_id);
+            std::cout << "ret : " << ret << " , current fsm_id: " << fsm_id << std::endl;
         }
         else if (arg_pair.first == "get_fsm_mode")
         {
             int32_t fsm_mode;
-            client->GetFsmMode(fsm_mode);
-            std::cout << "current fsm_mode: " << fsm_mode << std::endl;
+            ret = client->GetFsmMode(fsm_mode);
+            std::cout << "ret : " << ret << " , current fsm_mode: " << fsm_mode << std::endl;
         }
         else if (arg_pair.first == "get_balance_mode")
         {
             int32_t balance_mode;
-            client->GetBalanceMode(balance_mode);
-            std::cout << "current balance_mode: " << balance_mode << std::endl;
+            ret = client->GetBalanceMode(balance_mode);
+            std::cout << "ret : " << ret << " , current balance_mode: " << balance_mode << std::endl;
         }
         else if (arg_pair.first == "get_swing_height")
         {
             float swing_height;
-            client->GetSwingHeight(swing_height);
-            std::cout << "current swing_height: " << swing_height << std::endl;
+            ret = client->GetSwingHeight(swing_height);
+            std::cout << "ret : " << ret << " , current swing_height: " << swing_height << std::endl;
         }
         else if (arg_pair.first == "get_stand_height")
         {
             float stand_height;
-            client->GetStandHeight(stand_height);
-            std::cout << "current stand_height: " << stand_height << std::endl;
+            ret = client->GetStandHeight(stand_height);
+            std::cout << "ret : " << ret << " , current stand_height: " << stand_height << std::endl;
         }
         else if (arg_pair.first == "get_phase")
         {
             std::vector<float> phase;
-            client->GetPhase(phase);
-            std::cout << "current phase: (";
+            ret = client->GetPhase(phase);
+
+            std::cout << "ret : " << ret << " , current phase: (";
             for (const auto &p : phase)
             {
                 std::cout << p << ", ";
@@ -114,30 +110,30 @@ int main(int argc, char **argv)
         else if (arg_pair.first == "set_fsm_id")
         {
             int32_t fsm_id = std::stoi(arg_pair.second);
-            client->SetFsmId(fsm_id);
-            std::cout << "set fsm_id to " << fsm_id << std::endl;
+            ret = client->SetFsmId(fsm_id);
+            std::cout << "ret : " << ret << " , set fsm_id to " << fsm_id << std::endl;
         }
         else if (arg_pair.first == "set_balance_mode")
         {
             int32_t balance_mode = std::stoi(arg_pair.second);
-            client->SetBalanceMode(balance_mode);
-            std::cout << "set balance_mode to " << balance_mode << std::endl;
+            ret = client->SetBalanceMode(balance_mode);
+            std::cout << "ret : " << ret << " , set balance_mode to " << balance_mode << std::endl;
         }
         else if (arg_pair.first == "set_swing_height")
         {
             float swing_height = std::stof(arg_pair.second);
-            client->SetSwingHeight(swing_height);
-            std::cout << "set swing_height to " << swing_height << std::endl;
+            ret = client->SetSwingHeight(swing_height);
+            std::cout << "ret : " << ret << " , set swing_height to " << swing_height << std::endl;
         }
         else if (arg_pair.first == "set_stand_height")
         {
             float stand_height = std::stof(arg_pair.second);
-            client->SetStandHeight(stand_height);
-            std::cout << "set stand_height to " << stand_height << std::endl;
+            ret = client->SetStandHeight(stand_height);
+            std::cout << "ret : " << ret << " , set stand_height to " << stand_height << std::endl;
         }
         else if (arg_pair.first == "set_velocity")
         {
-            std::vector<float> param = stringToFloatVector(arg_pair.second);
+            std::vector<float> param = StringToFloatVector(arg_pair.second);
             auto param_size = param.size();
             float vx, vy, omega, duration;
             if (param_size == 3)
@@ -161,48 +157,58 @@ int main(int argc, char **argv)
                 return 1;
             }
 
-            client->SetVelocity(vx, vy, omega, duration);
-            std::cout << "set velocity to " << arg_pair.second << std::endl;
+            ret = client->SetVelocity(vx, vy, omega, duration);
+            std::cout << "ret : " << ret << " , set velocity to " << arg_pair.second << std::endl;
         }
         else if (arg_pair.first == "damp")
         {
-            client->Damp();
+            ret = client->Damp();
+            std::cout << "Damp ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "start")
         {
-            client->Start();
+            ret = client->Start();
+            std::cout << "Start ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "squat")
         {
-            client->Squat();
+            ret = client->Squat();
+            std::cout << "Squat ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "sit")
         {
-            client->Sit();
+            ret = client->Sit();
+            std::cout << "Sit ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "stand_up")
         {
-            client->StandUp();
+            ret = client->StandUp();
+            std::cout << "StandUp ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "zero_torque")
         {
-            client->ZeroTorque();
+            ret = client->ZeroTorque();
+            std::cout << "ZeroTorque ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "stop_move")
         {
-            client->StopMove();
+            ret = client->StopMove();
+            std::cout << "StopMove ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "high_stand")
         {
-            client->HighStand();
+            ret = client->HighStand();
+            std::cout << "HighStand ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "low_stand")
         {
-            client->LowStand();
+            ret = client->LowStand();
+            std::cout << "LowStand ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "balance_stand")
         {
-            client->BalanceStand();
+            ret = client->BalanceStand();
+            std::cout << "BalanceStand ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "continous_gait")
         {
@@ -220,7 +226,8 @@ int main(int argc, char **argv)
                 std::cerr << "invalid argument: " << arg_pair.second << std::endl;
                 return 1;
             }
-            client->ContinuousGait(flag);
+            ret = client->ContinuousGait(flag);
+            std::cout << "ContinuousGait ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "switch_move_mode")
         {
@@ -238,11 +245,12 @@ int main(int argc, char **argv)
                 std::cerr << "invalid argument: " << arg_pair.second << std::endl;
                 return 1;
             }
-            client->SwitchMoveMode(flag);
+            ret = client->SwitchMoveMode(flag);
+            std::cout << "SwitchMoveMode ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "move")
         {
-            std::vector<float> param = stringToFloatVector(arg_pair.second);
+            std::vector<float> param = StringToFloatVector(arg_pair.second);
             auto param_size = param.size();
             float vx, vy, omega;
             if (param_size == 3)
@@ -257,13 +265,14 @@ int main(int argc, char **argv)
                           << std::endl;
                 return 1;
             }
-            client->Move(vx, vy, omega);
+            ret = client->Move(vx, vy, omega);
+            std::cout << "Move ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "set_task_id")
         {
             int task_id = std::stoi(arg_pair.second);
-            client->SetTaskId(task_id);
-            std::cout << "set task_id to " << task_id << std::endl;
+            ret = client->SetTaskId(task_id);
+            std::cout << "ret : " << ret << " , set task_id to " << task_id << std::endl;
         }
         else if (arg_pair.first == "shake_hand")
         {
@@ -272,21 +281,40 @@ int main(int argc, char **argv)
                       << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(10));
             std::cout << "Shake hand ends!" << std::endl;
-            client->ShakeHand(1);
+            ret = client->ShakeHand(1);
+            std::cout << "ShakeHand ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "wave_hand")
         {
-            client->WaveHand();
-            std::cout << "wave hand" << std::endl;
+            ret = client->WaveHand();
+            std::cout << "wave hand ret : " << ret << std::endl;
         }
         else if (arg_pair.first == "wave_hand_with_turn")
         {
-            client->WaveHand(true);
-            std::cout << "wave hand with turn" << std::endl;
+            ret = client->WaveHand(true);
+            std::cout << "wave hand with turn" << ret << std::endl;
         }
 
         std::cout << "Done!" << std::endl;
     }
-    rclcpp::shutdown();
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+    try
+    {
+        rclcpp::init(argc, argv);
+        auto client = std::make_shared<LocoClient>();
+        std::map<std::string, std::string> args;
+        ParseArgv(argc, argv, args);
+        DoWork(client, args);
+        rclcpp::shutdown();
+    }
+    catch (const rclcpp::exceptions::RCLError &e)
+    {
+        std::cerr << "RCLError caught: " << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }

@@ -293,9 +293,17 @@ private:
 
 int main(int argc, char **argv)
 {
-    rclcpp::init(argc, argv);                               // Initialize rclcpp
-    auto node = std::make_shared<g1_arm7_control_sender>(); // Create a ROS2 node and make share with g1_arm7_control_sender class
-    rclcpp::spin(node);                                     // Run ROS2 node
-    rclcpp::shutdown();                                     // Exit
+    try
+    {
+        rclcpp::init(argc, argv);                               // Initialize rclcpp
+        auto node = std::make_shared<g1_arm7_control_sender>(); // Create a ROS2 node and make share with g1_arm7_control_sender class
+        rclcpp::spin(node);                                     // Run ROS2 node
+        rclcpp::shutdown();                                     // Exit
+    }
+    catch (const rclcpp::exceptions::RCLError &e)
+    {
+        std::cerr << "RCLError caught: " << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }

@@ -3,6 +3,20 @@
 
 using namespace unitree::ros2::g1;
 
+constexpr int32_t ROBOT_API_ID_LOCO_GET_FSM_ID = 7001;
+constexpr int32_t ROBOT_API_ID_LOCO_GET_FSM_MODE = 7002;
+constexpr int32_t ROBOT_API_ID_LOCO_GET_BALANCE_MODE = 7003;
+constexpr int32_t ROBOT_API_ID_LOCO_GET_SWING_HEIGHT = 7004;
+constexpr int32_t ROBOT_API_ID_LOCO_GET_STAND_HEIGHT = 7005;
+constexpr int32_t ROBOT_API_ID_LOCO_GET_PHASE = 7006; // deprecated
+
+constexpr int32_t ROBOT_API_ID_LOCO_SET_FSM_ID = 7101;
+constexpr int32_t ROBOT_API_ID_LOCO_SET_BALANCE_MODE = 7102;
+constexpr int32_t ROBOT_API_ID_LOCO_SET_SWING_HEIGHT = 7103;
+constexpr int32_t ROBOT_API_ID_LOCO_SET_STAND_HEIGHT = 7104;
+constexpr int32_t ROBOT_API_ID_LOCO_SET_VELOCITY = 7105;
+constexpr int32_t ROBOT_API_ID_LOCO_SET_ARM_TASK = 7106;
+
 void LocoClientParameter::GetFsmIdReq(const std::shared_ptr<unitree_api::srv::Generic::Request> &req)
 {
     req->api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
