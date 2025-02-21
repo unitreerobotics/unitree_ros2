@@ -55,8 +55,6 @@ cd ..
 colcon build --packages-select cyclonedds #编译cyclonedds
 ```
 
-
-
 ### 3. 编译unitree_go和unitree_api功能包
 编译好 cyclone-dds 后就需要 ros2 相关的依赖来完成 Unitree 功能包的编译，因此编译前需要先 source ROS2 的环境变量。
 
@@ -65,6 +63,15 @@ source /opt/ros/foxy/setup.bash #source ROS2 环境变量
 colcon build #编译工作空间下的所有功能包
 ```
 
+### 4.编译unitree_ros2功能包
+
+编译unitree_ros2需要依赖unitree_go和unitree_api功能包，因此编译前需要先source cyclonedds_ws下的环境变量
+
+```shell
+source ~/unitree_ros2/cyclonedds_ws/install/setup.bash  # source cyclonedds_ws环境变量
+cd ~/unitree_ros2/unitree_ros2_ws/ # 进入unitree_ros2工作空间
+colcon build #编译工作空间下的所有功能包
+```
 
 ## 连接到机器人
 
@@ -85,8 +92,10 @@ bash 的内容如下：
 ```bash
 #!/bin/bash
 echo "Setup unitree ros2 environment"
+SCRIPT_DIR=$(dirname "$(realpath "$BASH_SOURCE")")
 source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
+source $SCRIPT_DIR/cyclonedds_ws/install/setup.bash
+source $SCRIPT_DIR/unitree_ros2_ws/install/setup.bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
                             <NetworkInterface name="enp3s0" priority="default" multicast="default" />
@@ -372,7 +381,7 @@ uint32[4] reserve          //保留位
 
 ### 1. 运动服务
 
-G1机器人的运动指令是通过ros2的service方式实现的，通过创建运控客户端并调用运控接口可以实现高层的运动控制。其中运控客户端的创建和不同运动接口的的调用可使用LocoClient(example/src/src/client/g1_loco_client_impl.cpp)，例如获取G1的运控所在模式：
+G1机器人的运动指令是通过ros2的service方式实现的，通过创建运控客户端并调用运控接口可以实现高层的运动控制。其中运控客户端的创建和不同运动接口的的调用可使用LocoClient(unitree_ros2_ws/src/src/client/g1/g1_loco_client.cpp)，例如获取G1的运控所在模式：
 
 ```c++
 auto client = std::make_shared<LocoClient>();
@@ -383,10 +392,10 @@ std::cout << "ret : " << ret << " , current fsm_id: " << fsm_id << std::endl;
 
 关于LocoClient运动控制接口的具体解释可参考：https://support.unitree.com/home/zh/G1_developer/sport_services_interface
 
-高层运动控制的完整例程位于： example/src/src/g1/lococlient/g1_loco_client.cpp在终端中运行以下命令，可实现G1的原地转向
+高层运动控制的完整例程位于： example/src/src/g1/lococlient/g1_loco_client_example.cpp在终端中运行以下命令，可实现G1的原地转向
 
 ```shell
-./install/unitree_ros2_example/bin/g1_loco_client --move="0 0 0.5"
+./install/unitree_ros2_example/bin/g1_loco_client_example --move="0 0 0.5"
 ```
 
 ### 2. 电机控制

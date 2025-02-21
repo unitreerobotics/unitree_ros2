@@ -6,10 +6,14 @@ namespace unitree
 {
 namespace ros2
 {
-namespace g1
-{
 
-class MotionSwitchClientParameter
+constexpr int32_t MOTION_SWITCHER_API_ID_CHECK_MODE = 1001;
+constexpr int32_t MOTION_SWITCHER_API_ID_SELECT_MODE = 1002;
+constexpr int32_t MOTION_SWITCHER_API_ID_RELEASE_MODE = 1003;
+constexpr int32_t MOTION_SWITCHER_API_ID_SET_SILENT = 1004;
+constexpr int32_t MOTION_SWITCHER_API_ID_GET_SILENT = 1005;
+
+class MotionSwitchApi
 {
 public:
     void CheckModeReq(const std::shared_ptr<unitree_api::srv::Generic::Request> &req);
@@ -32,6 +36,5 @@ public:
 
     int32_t GetSilentRes(const std::shared_ptr<unitree_api::srv::Generic::Response> &res, bool &silent);
 };
-}
 }
 }

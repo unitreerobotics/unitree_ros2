@@ -1,7 +1,8 @@
 #pragma once
 
 #include <rclcpp/rclcpp.hpp>
-#include "g1_loco_client_parameter.hpp"
+#include "client/g1/g1_loco_api.hpp"
+#include "client/config.hpp"
 
 namespace unitree
 {
@@ -10,7 +11,7 @@ namespace ros2
 namespace g1
 {
 
-class LocoClient: public rclcpp::Node
+class LocoClient: public rclcpp::Node,public ClientConfig
 {
 public:
     LocoClient();
@@ -76,7 +77,7 @@ public:
 private:
     bool wait_service();
 
-    LocoClientParameter mLocoParam;
+    LocoClientApi mLocoParam;
     rclcpp::Client<unitree_api::srv::Generic>::SharedPtr mClient;
 
     bool mContinousMove = false;

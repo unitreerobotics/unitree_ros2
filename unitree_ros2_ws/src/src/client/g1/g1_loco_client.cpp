@@ -1,5 +1,5 @@
-#include "g1_loco_client_impl.hpp"
-#include "client_decl.hpp"
+#include "client/g1/g1_loco_client.hpp"
+#include "client/decl.hpp"
 
 using namespace unitree::ros2::g1;
 

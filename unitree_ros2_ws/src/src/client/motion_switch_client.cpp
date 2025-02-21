@@ -1,7 +1,7 @@
-#include "motion_switch_client_impl.hpp"
-#include "client_decl.hpp"
+#include "client/motion_switch_client.hpp"
+#include "client/decl.hpp"
 
-using namespace unitree::ros2::g1;
+using namespace unitree::ros2;
 
 #define MOTIONSWITCHER_SERVICE_NAME "motion_switcher"
 #define SEND_MOTIONSWITCH_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mClient, mParam, REQUEST_FUNC, __VA_ARGS__)

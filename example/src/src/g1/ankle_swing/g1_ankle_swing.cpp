@@ -6,8 +6,8 @@
 #include "unitree_hg/msg/imu_state.hpp"
 #include "unitree_hg/msg/low_cmd.hpp"
 #include "unitree_hg/msg/low_state.hpp"
-#include "motion_switch_client_impl.hpp"
-#include "gamepad.hpp"
+#include "client/motion_switch_client.hpp" 
+#include "utils/gamepad.hpp"
 #include "motor_crc_hg.h"
 
 using namespace unitree::common;
@@ -388,7 +388,7 @@ private:
 // try to shutdown motion control-related service
 void ShutdownMotionCtrl()
 {
-    auto client = std::make_shared<unitree::ros2::g1::MotionSwitchClient>();
+    auto client = std::make_shared<unitree::ros2::MotionSwitchClient>();
     std::string form, name;
     while (client->CheckMode(form, name), !name.empty())
     {

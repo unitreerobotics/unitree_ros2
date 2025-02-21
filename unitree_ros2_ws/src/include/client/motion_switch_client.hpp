@@ -1,16 +1,15 @@
 #pragma once
 
 #include <rclcpp/rclcpp.hpp>
-#include "motion_switch_client_parameter.hpp"
+#include "client/motion_switch_api.hpp"
+#include "client/config.hpp"
 
 namespace unitree
 {
 namespace ros2
 {
-namespace g1
-{
 
-class MotionSwitchClient: public rclcpp::Node
+class MotionSwitchClient: public rclcpp::Node,public ClientConfig
 {
 public:
     MotionSwitchClient();
@@ -28,10 +27,9 @@ public:
 private:
     bool wait_service();
 
-    MotionSwitchClientParameter mParam;
+    MotionSwitchApi mParam;
     rclcpp::Client<unitree_api::srv::Generic>::SharedPtr mClient;
 };
 
-}
 }
 }

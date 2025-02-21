@@ -1,7 +1,7 @@
 /**
  * This example demonstrates how to use ROS2 to call loco client api of unitree g1 robot
  **/
-#include "g1_loco_client_impl.hpp"
+#include "client/g1/g1_loco_client.hpp" 
 
 using namespace unitree::ros2::g1;
 

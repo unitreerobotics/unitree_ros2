@@ -47,7 +47,7 @@ If "source/opt/ros/foxy/setup. bash" has been added to the ~/.bashrc file when i
 ```bash
 sudo apt install gedit
 sudo gedit ~/.bashrc
-``` 
+```
 ```bash
 # source /opt/ros/foxy/setup.bash 
 ```
@@ -69,6 +69,16 @@ source /opt/ros/foxy/setup.bash # source ROS2 environment
 colcon build # Compile all packages in the workspace
 ```
 
+### 4. Compile unitree_ros2 packages
+
+Unitree_go and unitree_api packages is required for compilation of the unitree_ros2.Therefore, before compiling, it is necessary to source the environment of unitree_go and unitree_api .
+
+```shell
+source ~/unitree_ros2/cyclonedds_ws/install/setup.bash  # source cyclonedds_ws enviroment
+cd ~/unitree_ros2/unitree_ros2_ws/ # enter unitree_ros2 workspace
+colcon build # Compile all packages in the workspace
+```
+
 ## Connect to Unitree robot
 
 ### 1. Network configuration
@@ -85,8 +95,10 @@ sudo gedit ~/unitree_ros2/setup.sh
 ```bash
 #!/bin/bash
 echo "Setup unitree ros2 environment"
+SCRIPT_DIR=$(dirname "$(realpath "$BASH_SOURCE")")
 source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
+source $SCRIPT_DIR/cyclonedds_ws/install/setup.bash
+source $SCRIPT_DIR/unitree_ros2_ws/install/setup.bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
                             <NetworkInterface name="enp3s0" priority="default" multicast="default" />
@@ -370,7 +382,7 @@ Complete examples is in example/src/src/read_low_state_hg.cpp.
 
 ### 1.Sportservice
 
-The motion commands for the G1 robot are implemented through ROS2 services. By creating a motion control client and invoking the motion control interfaces, high-level motion control can be achieved. The creation of the motion control client and the invocation of different motion interfaces can be accomplished using the LocoClient (example/src/src/client/g1_loco_client_impl.cpp). For example, it can be used to retrieve the current motion control mode of the G1.
+The motion commands for the G1 robot are implemented through ROS2 services. By creating a motion control client and invoking the motion control interfaces, high-level motion control can be achieved. The creation of the motion control client and the invocation of different motion interfaces can be accomplished using the LocoClient (unitree_ros2_ws/src/src/client/g1/g1_loco_client.cpp). For example, it can be used to retrieve the current motion control mode of the G1.
 
 ```c++
 auto client = std::make_shared<LocoClient>();
@@ -381,10 +393,10 @@ std::cout << "ret : " << ret << " , current fsm_id: " << fsm_id << std::endl;
 
 For details about LocoClient：https://support.unitree.com/home/en/G1_developer/sport_services_interface
 
-Complete examples is in：example/src/src/g1/lococlient/g1_loco_client.cpp. By running the following command in the terminal, you can achieve in-place turning for the G1 robot:
+Complete examples is in：example/src/src/g1/lococlient/g1_loco_client_example.cpp. By running the following command in the terminal, you can achieve in-place turning for the G1 robot:
 
 ```shell
-./install/unitree_ros2_example/bin/g1_loco_client --move="0 0 0.5"
+./install/unitree_ros2_example/bin/g1_loco_client_example --move="0 0 0.5"
 ```
 
 ### 2. Motor control
