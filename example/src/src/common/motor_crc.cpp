@@ -1,5 +1,5 @@
 #include "motor_crc.h"
-
+#include "utils/crc.hpp"
 
 void get_crc(unitree_go::msg::LowCmd& msg)
 {
@@ -39,37 +39,6 @@ void get_crc(unitree_go::msg::LowCmd& msg)
 
 	raw.reserve=msg.reserve;
 
-    raw.crc=crc32_core((uint32_t *)&raw, (sizeof(LowCmd)>>2)-1);
-    msg.crc=raw.crc;
-
-    
-}
-
-
-uint32_t crc32_core(uint32_t* ptr, uint32_t len)
-{
-    uint32_t xbit = 0;
-    uint32_t data = 0;
-    uint32_t CRC32 = 0xFFFFFFFF;
-    const uint32_t dwPolynomial = 0x04c11db7;
-    for (uint32_t i = 0; i < len; i++)
-    {
-        xbit = 1 << 31;
-        data = ptr[i];
-        for (uint32_t bits = 0; bits < 32; bits++)
-        {
-            if (CRC32 & 0x80000000)
-            {
-                CRC32 <<= 1;
-                CRC32 ^= dwPolynomial;
-            }
-            else
-                CRC32 <<= 1;
-            if (data & xbit)
-                CRC32 ^= dwPolynomial;
-
-            xbit >>= 1;
-        }
-    }
-    return CRC32;
+    raw.crc = unitree::common::crc32_core((uint32_t *)&raw, (sizeof(LowCmd) >> 2) - 1);
+    msg.crc = raw.crc;
 }

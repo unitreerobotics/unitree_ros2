@@ -11,7 +11,7 @@ namespace ros2
 namespace g1
 {
 
-class LocoClient: public rclcpp::Node,public ClientConfig
+class LocoClient: public rclcpp::Node, public ClientConfig
 {
 public:
     LocoClient();

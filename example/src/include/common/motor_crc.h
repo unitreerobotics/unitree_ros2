@@ -77,7 +77,6 @@ typedef struct
 	uint32_t crc;
 } LowCmd;           
 
-uint32_t crc32_core(uint32_t* ptr, uint32_t len);
 void get_crc(unitree_go::msg::LowCmd& msg);
 
 

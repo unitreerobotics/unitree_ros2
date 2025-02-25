@@ -1,4 +1,6 @@
 int64 api_id
+int32 priority
+bool fastreply
 string parameter
 uint8[] binary
 ---

@@ -1,6 +1,6 @@
 #include "utils/crc.hpp"
 
-uint32_t crc32_core(uint32_t* ptr, uint32_t len)
+uint32_t unitree::common::crc32_core(uint32_t* ptr, uint32_t len)
 {
     uint32_t xbit = 0;
     uint32_t data = 0;

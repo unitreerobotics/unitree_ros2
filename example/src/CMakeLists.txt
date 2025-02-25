@@ -46,6 +46,7 @@ add_executable(g1_low_level_example src/g1/lowlevel/g1_low_level_example.cpp src
 add_executable(g1_arm7_control src/g1/arm7_control/g1_arm7_control.cpp)
 add_executable(g1_ankle_swing src/g1/ankle_swing/g1_ankle_swing.cpp src/common/motor_crc_hg.cpp)
 add_executable(g1_loco_client_example src/g1/lococlient/g1_loco_client_example.cpp)
+add_executable(g1_audio_client_example src/g1/audioclient/g1_audio_client_example.cpp)
 add_executable(read_low_state src/read_low_state.cpp)
 add_executable(read_low_state_hg src/read_low_state_hg.cpp)
 add_executable(read_motion_state src/read_motion_state.cpp)
@@ -58,6 +59,7 @@ ament_target_dependencies(g1_low_level_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_arm7_control ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_ankle_swing ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
 ament_target_dependencies(read_low_state ${DEPENDENCY_LIST})
 ament_target_dependencies(read_low_state_hg ${DEPENDENCY_LIST})
 ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
@@ -71,6 +73,7 @@ install(TARGETS
         g1_arm7_control
         g1_ankle_swing
         g1_loco_client_example
+        g1_audio_client_example
         read_low_state
         read_low_state_hg
         read_motion_state

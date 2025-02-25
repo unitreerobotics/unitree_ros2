@@ -7,8 +7,8 @@
 #include "unitree_hg/msg/motor_cmd.hpp"
 #include "common/motor_crc_hg.h"
 
-#define INFO_IMU 0        // Set 1 to info IMU states
-#define INFO_MOTOR 0      // Set 1 to info motor states
+#define INFO_IMU 1        // Set 1 to info IMU states
+#define INFO_MOTOR 1      // Set 1 to info motor states
 #define HIGH_FREQ 1 // Set 1 to subscribe to low states with high frequencies (500Hz)
 
 enum PRorAB { PR = 0, AB = 1 };
