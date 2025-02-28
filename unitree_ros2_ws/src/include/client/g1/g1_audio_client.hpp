@@ -14,7 +14,7 @@ namespace g1
 class AudioClient: public rclcpp::Node, public ClientConfig
 {
 public:
-    AudioClient();
+    AudioClient(const std::string &nodeName = "g1_voice_lient");
 
     int32_t TtsMaker(const std::string &text, int32_t speaker_id);
 

@@ -14,7 +14,7 @@ namespace g1
 class LocoClient: public rclcpp::Node, public ClientConfig
 {
 public:
-    LocoClient();
+    LocoClient(const std::string &nodeName = "g1_loco_lient");
 
     // Low Level API CALL
     int32_t GetFsmId(int32_t &fsm_id);

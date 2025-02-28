@@ -7,7 +7,7 @@ using namespace unitree::ros2::g1;
 #define SEND_LOCO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mClient, mLocoParam, REQUEST_FUNC, __VA_ARGS__)
 #define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mLocoParam, RESPONSE_FUNC, __VA_ARGS__)
 
-LocoClient::LocoClient() : Node("g1_loco_lient")
+LocoClient::LocoClient(const std::string &nodeName) : Node(nodeName)
 {
     mClient = this->create_client<unitree_api::srv::Generic>(LOCO_SERVICE_NAME);
 }

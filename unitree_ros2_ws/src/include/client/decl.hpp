@@ -40,6 +40,7 @@
     else if (status == rclcpp::FutureReturnCode::TIMEOUT)                                                                     \
     {                                                                                                                         \
         RCLCPP_ERROR(this->get_logger(), "%s api call timeout %d(s)", __FUNCTION__, timeout);                                 \
+        SetServiceStatus(false);                                                                                              \
         return ERR_ROS_API_TIMEOUT;                                                                                           \
     }                                                                                                                         \
     else                                                                                                                      \
@@ -49,6 +50,10 @@
     }
 
 #define WAIT_SERVICE(CLIENT, SERVICE_NAME)                                                                    \
+    if (IsServiceReady())                                                                                     \
+    {                                                                                                         \
+        return true;                                                                                          \
+    }                                                                                                         \
     int32_t tryTimes = 0;                                                                                     \
     while (!CLIENT->wait_for_service(std::chrono::seconds(WAIT_ROS_SERVICE_INTERVAL)))                        \
     {                                                                                                         \
@@ -65,4 +70,5 @@
         }                                                                                                     \
         RCLCPP_INFO(this->get_logger(), "Waiting for the service to be available...");                        \
     }                                                                                                         \
+    SetServiceStatus(true);                                                                                   \
     return true;

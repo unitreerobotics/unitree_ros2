@@ -7,7 +7,7 @@ using namespace unitree::ros2::g1;
 #define SEND_AUDIO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mClient, mParam, REQUEST_FUNC, __VA_ARGS__)
 #define PARSE_AUDIO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mParam, RESPONSE_FUNC, __VA_ARGS__)
 
-AudioClient::AudioClient() : Node("g1_voice_lient")
+AudioClient::AudioClient(const std::string &nodeName) : Node(nodeName)
 {
     mClient = this->create_client<unitree_api::srv::Generic>(AUDIO_SERVICE_NAME);
 }

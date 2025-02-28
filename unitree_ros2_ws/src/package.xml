@@ -4,8 +4,8 @@
   <name>unitree_ros2</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="18868877376@139.com">mark</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="unitree@unitree.com">Unitree</maintainer>
+  <license>BSD 3-Clause License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

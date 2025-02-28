@@ -12,7 +12,7 @@ namespace ros2
 class MotionSwitchClient: public rclcpp::Node,public ClientConfig
 {
 public:
-    MotionSwitchClient();
+    MotionSwitchClient(const std::string &nodeName = "motion_switch_client");
 
     int32_t CheckMode(std::string &form, std::string &name);
 
