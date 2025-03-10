@@ -40,44 +40,47 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 
-add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
-add_executable(low_level_ctrl_hg src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
+add_executable(h1_2_low_level_ctrl src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
 add_executable(g1_low_level_example src/g1/lowlevel/g1_low_level_example.cpp src/common/motor_crc_hg.cpp)
 add_executable(g1_arm7_control src/g1/arm7_control/g1_arm7_control.cpp)
 add_executable(g1_ankle_swing src/g1/ankle_swing/g1_ankle_swing.cpp src/common/motor_crc_hg.cpp)
 add_executable(g1_loco_client_example src/g1/lococlient/g1_loco_client_example.cpp)
 add_executable(g1_audio_client_example src/g1/audioclient/g1_audio_client_example.cpp)
-add_executable(read_low_state src/read_low_state.cpp)
-add_executable(read_low_state_hg src/read_low_state_hg.cpp)
-add_executable(read_motion_state src/read_motion_state.cpp)
-add_executable(read_wireless_controller src/read_wireless_controller.cpp)
+add_executable(g1_read_low_state src/g1/lowstate/read_low_state_hg.cpp)
+add_executable(go2_low_level_ctrl src/go2/low_level_ctrl.cpp src/common/motor_crc.cpp)
+add_executable(go2_read_low_state src/go2/read_low_state.cpp)
+add_executable(go2_read_motion_state src/go2/read_motion_state.cpp)
+add_executable(go2_read_wireless_controller src/go2/read_wireless_controller.cpp)
+add_executable(go2_sport_client_example src/go2/sport_client_example.cpp)
 #add_executable(record_bag src/record_bag.cpp)
 
-ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
-ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
+ament_target_dependencies(h1_2_low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_low_level_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_arm7_control ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_ankle_swing ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
-ament_target_dependencies(read_low_state ${DEPENDENCY_LIST})
-ament_target_dependencies(read_low_state_hg ${DEPENDENCY_LIST})
-ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
-ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_read_low_state ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_low_level_ctrl ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_read_low_state ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_read_motion_state ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_read_wireless_controller ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_sport_client_example ${DEPENDENCY_LIST})
 #ament_target_dependencies(record_bag ${DEPENDENCY_LIST})
 
 install(TARGETS 
-        low_level_ctrl
-        low_level_ctrl_hg
+        h1_2_low_level_ctrl
         g1_low_level_example
         g1_arm7_control
         g1_ankle_swing
         g1_loco_client_example
         g1_audio_client_example
-        read_low_state
-        read_low_state_hg
-        read_motion_state
-        read_wireless_controller
+        g1_read_low_state
+        go2_low_level_ctrl
+        go2_read_low_state
+        go2_read_motion_state
+        go2_read_wireless_controller
+        go2_sport_client_example
         DESTINATION)
 
 

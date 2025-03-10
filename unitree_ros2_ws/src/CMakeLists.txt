@@ -37,9 +37,10 @@ find_package(std_msgs REQUIRED)
 SET(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 AUX_SOURCE_DIRECTORY(${SRC_DIR}/client CLIENT_SRC)
 AUX_SOURCE_DIRECTORY(${SRC_DIR}/client/g1 G1_CLIENT_SRC)
+AUX_SOURCE_DIRECTORY(${SRC_DIR}/client/go2 GO2_CLIENT_SRC)
 AUX_SOURCE_DIRECTORY(${SRC_DIR}/utils UTILS_SRC)
 
-add_library(unitree_ros2 SHARED ${CLIENT_SRC} ${G1_CLIENT_SRC} ${UTILS_SRC})
+add_library(unitree_ros2 SHARED ${CLIENT_SRC} ${G1_CLIENT_SRC} ${GO2_CLIENT_SRC} ${UTILS_SRC})
 ament_target_dependencies(unitree_ros2 ${DEPENDENCY_LIST})
 
 install(TARGETS 

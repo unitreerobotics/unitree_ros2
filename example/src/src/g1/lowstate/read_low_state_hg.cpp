@@ -1,5 +1,5 @@
 /**
- * This example demonstrates how to use ROS2 to receive low states of unitree go2 robot
+ * This example demonstrates how to use ROS2 to receive low states of unitree g1 robot
  **/
 #include "rclcpp/rclcpp.hpp"
 #include "unitree_hg/msg/low_state.hpp"

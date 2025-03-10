@@ -3,7 +3,7 @@
 <package format="3">
   <name>unitree_ros2</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Unitree ros2</description>
   <maintainer email="unitree@unitree.com">Unitree</maintainer>
   <license>BSD 3-Clause License</license>
 

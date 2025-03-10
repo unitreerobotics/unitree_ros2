@@ -1,15 +1,13 @@
 #include "client/g1/g1_loco_client.hpp"
-#include "client/decl.hpp"
 
 using namespace unitree::ros2::g1;
 
 #define LOCO_SERVICE_NAME "loco"
-#define SEND_LOCO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mClient, mLocoParam, REQUEST_FUNC, __VA_ARGS__)
-#define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mLocoParam, RESPONSE_FUNC, __VA_ARGS__)
+#define SEND_LOCO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mParam, REQUEST_FUNC, __VA_ARGS__)
+#define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mParam, RESPONSE_FUNC, __VA_ARGS__)
 
-LocoClient::LocoClient(const std::string &nodeName) : Node(nodeName)
+LocoClient::LocoClient(const std::string &nodeName) : BaseClient(nodeName, LOCO_SERVICE_NAME)
 {
-    mClient = this->create_client<unitree_api::srv::Generic>(LOCO_SERVICE_NAME);
 }
 
 int32_t LocoClient::GetFsmId(int32_t &fsm_id)
@@ -174,9 +172,4 @@ int32_t LocoClient::ShakeHand(int stage)
         mFirstShakeHandStage = !mFirstShakeHandStage;
         return SetTaskId(mFirstShakeHandStage ? 3 : 2);
     }
-}
-
-bool LocoClient::wait_service()
-{
-    WAIT_SERVICE(mClient, LOCO_SERVICE_NAME)
 }

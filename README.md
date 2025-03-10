@@ -1,6 +1,4 @@
-Unitree robot ROS2 support
-
-[TOC]
+📖 [中文文档](README_zh.md)   📖 [English Docs](README.md)
 
 # Introduction
 Unitree SDK2 implements an easy-to-use robot communication mechanism based on Cyclonedds, which enable developers to achieve robot communication and control (**Supports Unitree Go2, B2, H1 and G1**). See: https://github.com/unitreerobotics/unitree_sdk2
@@ -147,7 +145,7 @@ colcon build
 ```
 After compilation, run in the terminal:
 ```bash
-./install/unitree_ros2_example/bin/read_motion_state 
+./install/unitree_ros2_example/bin/go2_read_motion_state
 ```
 You can see the robot status information output from the terminal:
 
@@ -211,9 +209,9 @@ float32[12] foot_speed_body //foot velcities in body frame
 ```
 For details, see：https://support.unitree.com/home/en/developer/sports_services.
 
-Complete examples is in /example/src/read_motion_state.cpp. Run in the terminal:
+Complete examples is in /example/src/src/go2/read_motion_state.cpp. Run in the terminal:
 ```bash
-./install/unitree_ros2_example/bin/read_motion_state 
+./install/unitree_ros2_example/bin/go2_read_motion_state
 ```
 
 ### 2. Low-level state
@@ -258,7 +256,12 @@ uint32 lost
 uint32[2] reserve
 ```
 For details, see: https://support.unitree.com/home/en/developer/Basic_services
-Complete examples is in example/src/read_low_state.cpp. 
+
+Complete examples is in example/src/src/go2/read_low_state.cpp. Run in the terminal:
+
+```shell
+./install/unitree_ros2_example/bin/go2_read_low_state
+```
 
 ### 3. Wireless controller
 
@@ -273,12 +276,33 @@ uint16 keys // key values
 ```
 For details, see: https://support.unitree.com/home/en/developer/Get_remote_control_status
 
-Complete examples is in example/src/read_wireless_controller.cpp.
+Complete examples is in example/src/src/go2/read_wireless_controller.cpp. Run in the terminal:
+
+```shell
+./install/unitree_ros2_example/bin/go2_read_wireless_controller
+```
 
 
 ## Robot control
 
-### 1. Motor control
+### 1. Sportmode
+
+The motion commands for the Go2 robot are implemented through ROS2 services. By creating a motion control client and invoking the motion control interfaces, high-level motion control can be achieved. The creation of the motion control client and the invocation of different motion interfaces can be accomplished using the SportClient (unitree_ros2_ws/src/src/client/go2/go2_sport_client.cpp). For example, control the robot to sit down:
+
+```c++
+auto client = std::make_shared<SportClient>();
+// set sit down api timeout to 5s
+client->SetApiTimeout(ROBOT_SPORT_API_ID_SIT, 5);
+// sit down
+client->Sit();
+```
+
+For details about SportClient：https://support.unitree.com/home/en/developer/sports_services
+
+Complete examples is in：example/src/src/go2/sport_client_example.cpp. Run ./install/unitree_ros2_example/bin/go2_sport_client_example in terminal. After startup, the robot will sit down and stand up again after 3 seconds.
+
+### 2. Motor control
+
 The torque, position and velocity control of motor can be implemented by subscribing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
 ```C++
 uint8[2] head

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <rclcpp/rclcpp.hpp>
+#include "client/base_client.hpp"
 #include "client/g1/g1_audio_api.hpp"
-#include "client/config.hpp"
 
 namespace unitree
 {
@@ -11,7 +10,7 @@ namespace ros2
 namespace g1
 {
 
-class AudioClient: public rclcpp::Node, public ClientConfig
+class AudioClient: public BaseClient
 {
 public:
     AudioClient(const std::string &nodeName = "g1_voice_lient");
@@ -29,10 +28,8 @@ public:
     int32_t LedControl(uint8_t R, uint8_t G, uint8_t B);
 
 private:
-    bool wait_service();
 
     AudioClientApi mParam;
-    rclcpp::Client<unitree_api::srv::Generic>::SharedPtr mClient;
 };
 
 }

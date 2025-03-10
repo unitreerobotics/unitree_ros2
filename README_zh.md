@@ -1,5 +1,9 @@
-[TOC]
+
+
+📖 [中文文档](README_zh.md)   📖 [English Docs](README.md)
+
 # Unitree 机器人ros2支持
+
 Unitree SDK2基于cyclonedds实现了一个易用的机器人数据通信机制，应用开发者可以利用这一接口实现机器人的数据通讯和指令控制(**支持Go2、B2、H1和G1**)。 https://github.com/unitreerobotics/unitree_sdk2
 ROS2也使用DDS作为通讯工具，因此Go2、B2、H1和G1机器人的底层可以兼容ros2，使用ros2自带的  msg 直接进行通讯和控制，而无需通过sdk接口转发。
 
@@ -206,8 +210,8 @@ float32[12] foot_speed_body //足端相对于机体的速度
 ```
 高层状态信息的具体解释可参考：https://support.unitree.com/home/zh/developer/sports_services
 
-读取高层状态的完整例程位于 /example/src/read_motion_state.cpp
-编译完例程后，在终端中运行./install/unitree_ros2_example/bin/read_motion_state，可查看运行结果。
+读取高层状态的完整例程位于 /example/src/src/go2/read_motion_state.cpp
+编译完例程后，在终端中运行./install/unitree_ros2_example/bin/go2_read_motion_state，可查看运行结果。
 
 ### 2. 低层状态获取
 低层状态为机器人的关节电机、电源信息等底层状态。通过订阅"lf/lowstate"或"lowstate" topic，可实现低层状态的获取。低层状态的msg定义如下：
@@ -251,8 +255,8 @@ uint32 lost
 uint32[2] reserve
 ```
 低层状态信息的具体解释可参考: https://support.unitree.com/home/zh/developer/Basic_services
-读取低层状态的完整例程序位于：example/src/read_low_state.cpp
-在终端中运行./install/unitree_ros2_example/bin/read_low_state，可查看低层状态获取例程的运行结果。
+读取低层状态的完整例程序位于：example/src/src/go2/read_low_state.cpp
+在终端中运行./install/unitree_ros2_example/bin/go2_read_low_state，可查看低层状态获取例程的运行结果。
 
 ### 3. 遥控器状态获取
 通过订阅"/wirelesscontroller" topic可获取遥控器的摇杆数值和按键键值。遥控器状态的msg定义如下
@@ -266,12 +270,29 @@ uint16 keys //键值
 ```
 遥控器状态和遥控器键值的相关定义可参考：https://support.unitree.com/home/zh/developer/Get_remote_control_status
 
-读取遥控器状态的完整例程序见：example/src/read_wireless_controller.cpp
-在终端中运行./install/unitree_ros2_example/bin/read_low_state，可查看遥控器状态获取例程的运行结果。
+读取遥控器状态的完整例程序见：example/src/src/go2/read_wireless_controller.cpp
+在终端中运行./install/unitree_ros2_example/bin/go2_read_wireless_controller，可查看遥控器状态获取例程的运行结果。
 
 ## 机器人控制
 
-### 1. 电机控制
+### 1. 运动控制
+
+Go2机器人的运动指令是通过ros2的service方式实现的，通过创建运控客户端并调用运控接口可以实现高层的运动控制。其中运控客户端的创建和不同运动接口的的调用可使用SportClient(unitree_ros2_ws/src/src/client/go2/go2_sport_client.cpp)，例如实现Go2的坐下：
+
+```c++
+auto client = std::make_shared<SportClient>();
+// set sit down api timeout to 5s
+client->SetApiTimeout(ROBOT_SPORT_API_ID_SIT, 5);
+// sit down
+client->Sit();
+```
+
+关于SportClient运动控制接口的具体解释可参考：https://support.unitree.com/home/zh/developer/sports_services
+
+高层运动控制的完整例程位于：example/src/src/go2/sport_client_example.cpp 在终端中运行./install/unitree_ros2_example/bin/go2_sport_client_example，机器人会先坐下然后等待3秒后恢复站立。
+
+### 2. 电机控制
+
 通过订阅"/lowcmd" topic，并发送unitree_go::msg::LowCmd可以实现对电机的力矩、位置、和速度控制。底层控制指令的msg定义如下:
 
 ```C++
