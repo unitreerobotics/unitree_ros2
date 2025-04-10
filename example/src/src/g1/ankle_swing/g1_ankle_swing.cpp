@@ -9,6 +9,7 @@
 #include "client/motion_switch_client.hpp" 
 #include "utils/gamepad.hpp"
 #include "motor_crc_hg.h"
+#include "utils/utils.hpp"
 
 using namespace unitree::common;
 using std::placeholders::_1;
@@ -170,7 +171,7 @@ private:
                 // [Stage 1]: set robot to zero posture
                 for (int i = 0; i < G1_NUM_MOTOR; ++i)
                 {
-                    double ratio = clamp(mTime / mDuration, 0.0, 1.0);
+                    double ratio = unitree::common::clamp(mTime / mDuration, 0.0, 1.0);
                     motorCommandTmp.q_target.at(i) = (1.0 - ratio) * ms->q.at(i);
                 }
             }
@@ -356,15 +357,6 @@ private:
         {
             RCLCPP_INFO(this->get_logger(), "IMU.torso.rpy: %.2f %.2f %.2f", rpy[0], rpy[1], rpy[2]);
         }
-    }
-
-    double clamp(float value, float low, float high)
-    {
-        if (value < low)
-            return low;
-        if (value > high)
-            return high;
-        return value;
     }
 
     rclcpp::Publisher<unitree_hg::msg::LowCmd>::SharedPtr mLowcmdPublisher;         // ROS2 Publisher

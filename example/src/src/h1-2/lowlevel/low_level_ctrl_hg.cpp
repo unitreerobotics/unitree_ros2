@@ -6,6 +6,7 @@
 #include "unitree_hg/msg/low_state.hpp"
 #include "unitree_hg/msg/motor_cmd.hpp"
 #include "common/motor_crc_hg.h"
+#include "utils/utils.hpp"
 
 #define INFO_IMU 0        // Set 1 to info IMU states
 #define INFO_MOTOR 0      // Set 1 to info motor states
@@ -105,7 +106,7 @@ private:
         {
             // [Stage 1]: set robot to zero posture
             for (int i = 0; i < H1_2_NUM_MOTOR; ++i) {
-                double ratio = clamp(time_ / duration_, 0.0, 1.0);
+                double ratio = unitree::common::clamp(time_ / duration_, 0.0, 1.0);
                 low_command.motor_cmd[i].q =
                     (1. - ratio) * motor[i].q;
             }
@@ -206,13 +207,6 @@ private:
                             i, motor[i].q, motor[i].dq, motor[i].ddq, motor[i].tau_est);
             }
         }
-    }
-
-    double clamp(double value, double low, double high) 
-    {
-        if (value < low) return low;
-        if (value > high) return high;
-        return value;
     }
 
     rclcpp::TimerBase::SharedPtr timer_;                                             // ROS2 timer

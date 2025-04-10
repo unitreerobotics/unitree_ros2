@@ -5,6 +5,7 @@
 #include "unitree_hg/msg/low_cmd.hpp"
 #include "unitree_hg/msg/low_state.hpp"
 #include "unitree_hg/msg/motor_cmd.hpp"
+#include "utils/utils.hpp"
 
 using std::placeholders::_1;
 
@@ -172,7 +173,7 @@ private:
             for (size_t j = 0; j < mLowCmdParam.init_pos.size(); ++j)
             {
                 mLowCmdParam.current_jpos_des.at(j) +=
-                    clamp(mLowCmdParam.target_pos.at(j) - mLowCmdParam.current_jpos_des.at(j),
+                    unitree::common::clamp(mLowCmdParam.target_pos.at(j) - mLowCmdParam.current_jpos_des.at(j),
                           -mLowCmdParam.max_joint_delta, mLowCmdParam.max_joint_delta);
             }
 
@@ -203,7 +204,7 @@ private:
             for (size_t j = 0; j < mLowCmdParam.init_pos.size(); ++j)
             {
                 mLowCmdParam.current_jpos_des.at(j) +=
-                    clamp(mLowCmdParam.init_pos.at(j) - mLowCmdParam.current_jpos_des.at(j), -mLowCmdParam.max_joint_delta,
+                unitree::common::clamp(mLowCmdParam.init_pos.at(j) - mLowCmdParam.current_jpos_des.at(j), -mLowCmdParam.max_joint_delta,
                           mLowCmdParam.max_joint_delta);
             }
 
@@ -235,7 +236,7 @@ private:
         {
             // increase weight
             mLowCmdParam.weight -= mLowCmdParam.delta_weight;
-            mLowCmdParam.weight = clamp(mLowCmdParam.weight, 0.f, 1.f);
+            mLowCmdParam.weight = unitree::common::clamp(mLowCmdParam.weight, 0.f, 1.f);
 
             // set weight
             mCmd.motor_cmd.at(JointIndex::kNotUsedJoint).set__q(mLowCmdParam.weight);
@@ -270,15 +271,6 @@ private:
                 mTimer = this->create_wall_timer(std::chrono::seconds(1), std::bind(&g1_arm7_control_sender::Control, this));
             }
         }
-    }
-
-    double clamp(float value, float low, float high)
-    {
-        if (value < low)
-            return low;
-        if (value > high)
-            return high;
-        return value;
     }
 
     rclcpp::Publisher<unitree_hg::msg::LowCmd>::SharedPtr mLowcmdPublisher;         // ROS2 Publisher

@@ -6,6 +6,7 @@
 #include "unitree_hg/msg/low_state.hpp"
 #include "unitree_hg/msg/motor_cmd.hpp"
 #include "common/motor_crc_hg.h"
+#include "utils/utils.hpp"
 
 #define INFO_IMU 1        // Set 1 to info IMU states
 #define INFO_MOTOR 1      // Set 1 to info motor states
@@ -105,7 +106,7 @@ private:
         {
             // [Stage 1]: set robot to zero posture
             for (int i = 0; i < G1_NUM_MOTOR; ++i) {
-                double ratio = clamp(time_ / duration_, 0.0, 1.0);
+                double ratio = unitree::common::clamp(time_ / duration_, 0.0, 1.0);
                 low_command.motor_cmd[i].q =
                     (1. - ratio) * motor[i].q;
             }
@@ -208,13 +209,6 @@ private:
         }
     }
 
-    double clamp(double value, double low, double high) 
-    {
-        if (value < low) return low;
-        if (value > high) return high;
-        return value;
-    }
-
     rclcpp::TimerBase::SharedPtr timer_;                                             // ROS2 timer
     rclcpp::Publisher<unitree_hg::msg::LowCmd>::SharedPtr lowcmd_publisher_;         // ROS2 Publisher
     rclcpp::Subscription<unitree_hg::msg::LowState>::SharedPtr lowstate_subscriber_; // ROS2 Subscriber
@@ -232,7 +226,6 @@ private:
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);                             // Initialize rclcpp
-    rclcpp::TimerBase::SharedPtr timer_;                  // Create a timer callback object to send cmd in time intervals
     auto node = std::make_shared<low_level_cmd_sender>(); // Create a ROS2 node and make share with low_level_cmd_sender class
     rclcpp::spin(node);                                   // Run ROS2 node
     rclcpp::shutdown();                                   // Exit
