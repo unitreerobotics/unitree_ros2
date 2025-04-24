@@ -68,7 +68,7 @@ install(TARGETS
         read_motion_state
         read_wireless_controller
         sport_mode_ctrl
-        DESTINATION)
+        DESTINATION lib/${PROJECT_NAME})
 
 
 if(BUILD_TESTING)
