@@ -2,7 +2,7 @@
 
 using namespace unitree::ros2::g1;
 
-#define LOCO_SERVICE_NAME "loco"
+#define LOCO_SERVICE_NAME "sport"
 #define SEND_LOCO_REQUEST(REQUEST_FUNC, ...) SEND_REQUEST(mParam, REQUEST_FUNC, __VA_ARGS__)
 #define PARSE_LOCO_RESPONSE(RESPONSE_FUNC, ...) PARSE_RESPONSE(mParam, RESPONSE_FUNC, __VA_ARGS__)
 
