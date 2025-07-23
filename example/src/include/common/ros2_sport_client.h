@@ -15,22 +15,12 @@ const int32_t ROBOT_SPORT_API_ID_EULER = 1007;
 const int32_t ROBOT_SPORT_API_ID_MOVE = 1008;
 const int32_t ROBOT_SPORT_API_ID_SIT = 1009;
 const int32_t ROBOT_SPORT_API_ID_RISESIT = 1010;
-const int32_t ROBOT_SPORT_API_ID_SWITCHGAIT = 1011;
-const int32_t ROBOT_SPORT_API_ID_TRIGGER = 1012;
-const int32_t ROBOT_SPORT_API_ID_BODYHEIGHT = 1013;
-const int32_t ROBOT_SPORT_API_ID_FOOTRAISEHEIGHT = 1014;
 const int32_t ROBOT_SPORT_API_ID_SPEEDLEVEL = 1015;
 const int32_t ROBOT_SPORT_API_ID_HELLO = 1016;
 const int32_t ROBOT_SPORT_API_ID_STRETCH = 1017;
-const int32_t ROBOT_SPORT_API_ID_TRAJECTORYFOLLOW = 1018;
-const int32_t ROBOT_SPORT_API_ID_CONTINUOUSGAIT = 1019;
 const int32_t ROBOT_SPORT_API_ID_CONTENT = 1020;
-const int32_t ROBOT_SPORT_API_ID_WALLOW = 1021;
 const int32_t ROBOT_SPORT_API_ID_DANCE1 = 1022;
 const int32_t ROBOT_SPORT_API_ID_DANCE2 = 1023;
-const int32_t ROBOT_SPORT_API_ID_GETBODYHEIGHT = 1024;
-const int32_t ROBOT_SPORT_API_ID_GETFOOTRAISEHEIGHT = 1025;
-const int32_t ROBOT_SPORT_API_ID_GETSPEEDLEVEL = 1026;
 const int32_t ROBOT_SPORT_API_ID_SWITCHJOYSTICK = 1027;
 const int32_t ROBOT_SPORT_API_ID_POSE = 1028;
 const int32_t ROBOT_SPORT_API_ID_SCRAPE = 1029;
@@ -113,29 +103,6 @@ class SportClient {
    */
   void RiseSit(unitree_api::msg::Request &req);
 
-  /*
-   * @brief SwitchGait
-   * @api: 1011
-   */
-  void SwitchGait(unitree_api::msg::Request &req, int d);
-
-  /*
-   * @brief Trigger
-   * @api: 1012
-   */
-  void Trigger(unitree_api::msg::Request &req);
-
-  /*
-   * @brief BodyHeight
-   * @api: 1013
-   */
-  void BodyHeight(unitree_api::msg::Request &req, float height);
-
-  /*
-   * @brief FootRaiseHeight
-   * @api: 1014
-   */
-  void FootRaiseHeight(unitree_api::msg::Request &req, float height);
 
   /*
    * @brief SpeedLevel
@@ -155,12 +122,6 @@ class SportClient {
    */
   void Stretch(unitree_api::msg::Request &req);
 
-  /*
-   * @brief TrajectoryFollow
-   * @api: 1018
-   */
-  void TrajectoryFollow(unitree_api::msg::Request &req,
-                        std::vector<PathPoint> &path);
 
   /*
    * @brief SwitchJoystick
@@ -168,17 +129,7 @@ class SportClient {
    */
   void SwitchJoystick(unitree_api::msg::Request &req, bool flag);
 
-  /*
-   * @brief ContinuousGait
-   * @api: 1019
-   */
-  void ContinuousGait(unitree_api::msg::Request &req, bool flag);
 
-  /*
-   * @brief Wallow
-   * @api: 1021
-   */
-  void Wallow(unitree_api::msg::Request &req);
 
   /*
    * @brief Content

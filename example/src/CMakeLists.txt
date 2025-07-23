@@ -46,7 +46,6 @@ add_executable(read_low_state_hg src/read_low_state_hg.cpp)
 add_executable(read_motion_state src/read_motion_state.cpp)
 add_executable(read_wireless_controller src/read_wireless_controller.cpp)
 #add_executable(record_bag src/record_bag.cpp)
-add_executable(sport_mode_ctrl src/sport_mode_ctrl.cpp src/common/ros2_sport_client.cpp)
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
@@ -56,8 +55,6 @@ ament_target_dependencies(read_low_state_hg ${DEPENDENCY_LIST})
 ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
 ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
 #ament_target_dependencies(record_bag ${DEPENDENCY_LIST})
-ament_target_dependencies(sport_mode_ctrl ${DEPENDENCY_LIST})
-
 
 install(TARGETS 
         low_level_ctrl
@@ -67,7 +64,6 @@ install(TARGETS
         read_low_state_hg
         read_motion_state
         read_wireless_controller
-        sport_mode_ctrl
         DESTINATION)
 
 
