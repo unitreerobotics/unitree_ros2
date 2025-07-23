@@ -33,10 +33,14 @@ Checks: >
   -readability-identifier-length,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
 
 
 
 CheckOptions:
+  # Ignore Ros2 foxy SharedPtr
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'SharedPtr;std::shared_ptr'
   - key: performance-unnecessary-copy-initialization.AllowedTypes
     value: Ptr
   - key: readability-simplify-boolean-expr.SimplifyDeMorgan

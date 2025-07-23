@@ -10,16 +10,15 @@
 #include "rosbag2_storage/serialized_bag_message.hpp"
 #include "unitree_go/msg/sport_mode_state.hpp"
 
-#define HIGH_FREQ 0
+constexpr bool HIGH_FREQ = false;
+// Set 1 to subscribe to low states with high frequencies (500Hz)
 
-using std::placeholders::_1;
-
-class motion_state_suber : public rclcpp::Node {
+class MotionStateSuber : public rclcpp::Node {
  public:
-  motion_state_suber() : Node("motion_state_suber") {
+  MotionStateSuber() : Node("motion_state_suber") {
     // the cmd_puber is set to subscribe "sportmodestate" or "lf/sportmodestate"
     // (low frequencies) topic
-    auto topic_name = "lf/sportmodestate";
+    const auto *topic_name = "lf/sportmodestate";
     if (HIGH_FREQ) {
       topic_name = "sportmodestate";
     }
@@ -37,9 +36,11 @@ class motion_state_suber : public rclcpp::Node {
 
     // The suber  callback function is bind to
     // motion_state_suber::topic_callback
-    suber = this->create_subscription<unitree_go::msg::SportModeState>(
+    suber_ = this->create_subscription<unitree_go::msg::SportModeState>(
         topic_name, 10,
-        std::bind(&motion_state_suber::topic_callback, this, _1));
+        [this](unitree_go::msg::SportModeState::SharedPtr data) {
+          topic_callback(data);
+        });
   }
 
  private:
@@ -89,19 +90,19 @@ class motion_state_suber : public rclcpp::Node {
   }
 
   // Create the suber to receive motion states of robot
-  rclcpp::Subscription<unitree_go::msg::SportModeState>::SharedPtr suber;
+  rclcpp::Subscription<unitree_go::msg::SportModeState>::SharedPtr suber_;
   // Create the writer_ to record motion states of robot
   std::unique_ptr<rosbag2_cpp::writers::SequentialWriter> writer_;
   unitree_go::msg::SportModeState
-      state_data;  // Unitree sportmode state message
+      state_data_;  // Unitree sportmode state message
 };
 
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);  // Initialize rclcpp
   rclcpp::spin(
-      std::make_shared<motion_state_suber>());  // Run ROS2 node which is make
-                                                // share with motion_state_suber
-                                                // class
+      std::make_shared<MotionStateSuber>());  // Run ROS2 node which is make
+                                              // share with motion_state_suber
+                                              // class
   rclcpp::shutdown();
   return 0;
 }

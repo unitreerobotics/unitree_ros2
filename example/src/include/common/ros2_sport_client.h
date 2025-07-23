@@ -5,7 +5,6 @@
 #include "nlohmann/json.hpp"
 #include "unitree_api/msg/request.hpp"
 
-#pragma pack(1)
 const int32_t ROBOT_SPORT_API_ID_DAMP = 1001;
 const int32_t ROBOT_SPORT_API_ID_BALANCESTAND = 1002;
 const int32_t ROBOT_SPORT_API_ID_STOPMOVE = 1003;
@@ -39,7 +38,8 @@ const int32_t ROBOT_SPORT_API_ID_FRONTFLIP = 1030;
 const int32_t ROBOT_SPORT_API_ID_FRONTJUMP = 1031;
 const int32_t ROBOT_SPORT_API_ID_FRONTPOUNCE = 1032;
 
-typedef struct {
+#pragma pack(1)
+struct PathPoint {
   float timeFromStart;
   float x;
   float y;
@@ -47,7 +47,8 @@ typedef struct {
   float vx;
   float vy;
   float vyaw;
-} PathPoint;
+};
+#pragma pack()
 
 class SportClient {
  public:
