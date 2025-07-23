@@ -125,6 +125,19 @@ ros2 topic list
 
 
 ### 3. 编译和测试例程
+
+示例源代码位于 `/example/src/src`。
+- common：所有机器人的通用函数。
+- g1：G1 的低电平控制
+- h1-2：H1-2 的低电平控制
+- low_level_ctrl：Go2/B2 的低电平控制
+- read_low_state：读取 Go2/B2 的低电平状态
+- read_low_state_hg：读取 G1/H1/H1-2 的低电平状态
+- read_motion_state：读取 Go2/B2 的运动模式状态
+- read_ wireless_controller：读取 G1/Go2/B2 的无线控制器状态
+- record_bag：Ros Bag 录制示例。
+- sport_mode_ctrl：Go2 的高级控制。
+
 ctrl+alt+T打开终端，在终端中执行如下命令，编译测试例程：
 ```bash
 source ~/unitree_ros2/setup.sh
