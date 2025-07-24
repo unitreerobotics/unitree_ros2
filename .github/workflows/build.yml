@@ -1,0 +1,34 @@
+name: Build in ubuntu:22.04 with ROS2 Humble
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use latest runner to host the container
+    
+    container:
+      image: althack/ros2:humble-full
+      options: --privileged  # Needed for some build tools
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+        apt-get update
+        apt install -y ros-humble-rmw-cyclonedds-cpp ros-humble-rosidl-generator-dds-idl
+    - name: ROS2 build
+      run: |
+        export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+        cd cyclonedds_ws
+        colcon build
+        . install/setup.sh
+        cd ..
+        colcon build
+        echo "Build completed successfully."
