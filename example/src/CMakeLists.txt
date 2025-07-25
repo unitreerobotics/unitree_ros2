@@ -59,6 +59,7 @@ add_executable(read_motion_state src/read_motion_state.cpp)
 add_executable(read_wireless_controller src/read_wireless_controller.cpp)
 #add_executable(record_bag src/record_bag.cpp)
 add_executable(go2_sport_client src/go2/go2_sport_client.cpp src/common/ros2_sport_client.cpp)
+add_executable(go2_stand_example src/go2/go2_stand_example.cpp src/common/motor_crc.cpp)
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
@@ -69,6 +70,7 @@ ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
 ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
 #ament_target_dependencies(record_bag ${DEPENDENCY_LIST})
 ament_target_dependencies(go2_sport_client ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_stand_example ${DEPENDENCY_LIST})
 
 install(TARGETS 
         low_level_ctrl
@@ -79,6 +81,7 @@ install(TARGETS
         read_motion_state
         read_wireless_controller
         go2_sport_client
+        go2_stand_example
         DESTINATION)
 
 

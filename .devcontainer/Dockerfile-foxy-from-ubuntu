@@ -1,36 +1,21 @@
-# 基于 Ubuntu 20.04
 FROM ubuntu:20.04
 
-# 设置环境变量（避免交互式提示）
 ENV DEBIAN_FRONTEND=noninteractive \
     ROS_DISTRO=foxy
 
-# 使用阿里云镜像加速（国内环境推荐）
 RUN sed -i 's|http://.*archive.ubuntu.com|http://mirrors.aliyun.com|g' /etc/apt/sources.list && \
     sed -i 's|http://.*security.ubuntu.com|http://mirrors.aliyun.com|g' /etc/apt/sources.list
 
-# 安装基础工具和ROS 2依赖
+# install ros2 
 RUN apt-get update && apt-get install -y curl gnupg2 lsb-release software-properties-common 
 
-# 添加ROS 2 GPG密钥和软件源（使用中科大镜像）
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list
 
-# 安装ROS 2核心包和开发工具
 RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop git vim wget
 RUN apt-get install -y cmake g++ build-essential ros-foxy-rmw-cyclonedds-cpp ros-foxy-rosidl-generator-dds-idl
+RUN apt install -y python3-colcon-common-extensions
 
-# 初始化rosdep（使用国内配置）
-RUN rosdep init || true && \
-    rosdep update --include-eol-distros --rosdistro ${ROS_DISTRO}
 
-# 设置工作空间环境变量
-ENV ROS_WS=/ros_ws
-RUN mkdir -p ${ROS_WS}/src
-
-# 设置环境变量（自动source ROS）
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
-
-# 创建工作目录并设置默认启动命令
-WORKDIR ${ROS_WS}
+WORKDIR /workspace
 CMD ["bash"]

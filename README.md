@@ -59,6 +59,7 @@ cd ~/unitree_ros2/cyclonedds_ws/src
 git clone https://github.com/ros2/rmw_cyclonedds -b foxy
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
 cd ..
+# If build failed, try run: `export LD_LIBRARY_PATH=/opt/ros/foxy/lib` first.
 colcon build --packages-select cyclonedds #Compile cyclone-dds package
 ```
 
@@ -139,6 +140,7 @@ The source code of examples locates at `/example/src/src`.
 - read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
 - record_bag: Ros bag recording example.
 - go2/go2_sport_client: High level control for Go2.
+- go2/go2_stand_example: Stand example for Go2.
 
 Open a terminal and input:
 ```bash

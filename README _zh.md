@@ -52,6 +52,7 @@ cd ~/unitree_ros2/cyclonedds_ws/src
 git clone https://github.com/ros2/rmw_cyclonedds -b foxy
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
 cd ..
+# 如果编译报错，尝试先运行：`export LD_LIBRARY_PATH=/opt/ros/foxy/lib`
 colcon build --packages-select cyclonedds #编译cyclonedds
 ```
 
@@ -137,6 +138,7 @@ ros2 topic list
 - read_ wireless_controller：读取 G1/Go2/B2 的无线控制器状态
 - record_bag：Ros Bag 录制示例。
 - go2/go2_sport_client：Go2 的高级控制。
+- go2/go2_stand_example：Go2 的站立示例。
 
 ctrl+alt+T打开终端，在终端中执行如下命令，编译测试例程：
 ```bash
