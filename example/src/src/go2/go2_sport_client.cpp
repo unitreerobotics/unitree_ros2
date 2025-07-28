@@ -5,14 +5,16 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <rclcpp/executors/multi_threaded_executor.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <thread>
 #include <unitree_go/msg/detail/sport_mode_state__struct.hpp>
 
 #include "common/ros2_sport_client.h"
 #include "unitree_go/msg/sport_mode_state.hpp"
 
-#define TOPIC_HIGHSTATE "rt/sportmodestate"
+#define TOPIC_HIGHSTATE "lf/sportmodestate"
 
 enum TestMode {
   /*---Basic motion---*/
@@ -31,16 +33,20 @@ enum TestMode {
 
 class Go2SportClientNode : public rclcpp::Node {
  public:
-  Go2SportClientNode(int test_mode) : Node("go2_sport_client_node"), test_mode_(test_mode) {
+  explicit Go2SportClientNode(int test_mode)
+      : Node("go2_sport_client_node"),
+        sport_client_(this),
+        test_mode_(test_mode) {
     suber_ = this->create_subscription<unitree_go::msg::SportModeState>(
         TOPIC_HIGHSTATE, 1,
         [this](const unitree_go::msg::SportModeState::SharedPtr data) {
           HighStateHandler(data);
         });
-    req_puber_ = this->create_publisher<unitree_api::msg::Request>(
-        "/api/sport/request", 10);
-    timer_ = this->create_wall_timer(std::chrono::duration<double>(dt_),
-                                     [this] { RobotControl(); });
+    t1_ = std::thread([this] {
+      // wait for ros2 spin
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      RobotControl();
+    });
   }
 
   void RobotControl() {
@@ -85,8 +91,6 @@ class Go2SportClientNode : public rclcpp::Node {
       default:
         sport_client_.StopMove(req_);
     }
-
-    req_puber_->publish(req_);
   }
 
   void GetInitState() {
@@ -100,26 +104,27 @@ class Go2SportClientNode : public rclcpp::Node {
 
   void HighStateHandler(const unitree_go::msg::SportModeState::SharedPtr msg) {
     state_ = *msg;
-    // RCLCPP_INFO(this->get_logger(), "Position: %f, %f, %f",
-    //             state_.position()[0], state_.position()[1],
-    //             state_.position()[2]);
-    // RCLCPP_INFO(this->get_logger(), "IMU rpy: %f, %f, %f",
-    //             state_.imu_state().rpy()[0], state_.imu_state().rpy()[1],
-    //             state_.imu_state().rpy()[2]);
+    RCLCPP_INFO(this->get_logger(), "Position: %f, %f, %f", state_.position[0],
+                state_.position[1], state_.position[2]);
+    RCLCPP_INFO(this->get_logger(), "IMU rpy: %f, %f, %f",
+                state_.imu_state.rpy[0], state_.imu_state.rpy[1],
+                state_.imu_state.rpy[2]);
   }
 
  private:
   unitree_go::msg::SportModeState state_;
-  SportClient sport_client_{};
+  SportClient sport_client_;
   rclcpp::Subscription<unitree_go::msg::SportModeState>::SharedPtr suber_;
-  rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber_;
+  rclcpp::Subscription<unitree_api::msg::Response>::SharedPtr req_suber_;
+
   rclcpp::TimerBase::SharedPtr timer_;
   unitree_api::msg::Request req_;  // Unitree Go2 ROS2 request message
   double px0_{}, py0_{}, yaw0_{};
   double ct_{};
   int flag_{};
-  float dt_{};
+  float dt_ = 0.1;
   int test_mode_;
+  std::thread t1_;
 };
 
 int main(int argc, char **argv) {
@@ -140,11 +145,14 @@ int main(int argc, char **argv) {
   }
 
   int test_mode = std::atoi(argv[1]);
-  
+
   rclcpp::init(argc, argv);
   auto node = std::make_shared<Go2SportClientNode>(test_mode);
   node->GetInitState();
-  rclcpp::spin(node);
+
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(node);
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }

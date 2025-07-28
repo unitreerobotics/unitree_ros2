@@ -130,15 +130,15 @@ Input ros2 topic echo /sportmodestate，you can see the data of the topic as 
 
 The source code of examples locates at `/example/src/src`.
 - common: Common functions for all robots.
-- g1: Low level control for G1
-- h1-2: Low level control for H1-2
+- g1/lowlevel/g1_low_level_example: Low level control for G1
+- h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
 - low_level_ctrl: Low level control for Go2/B2
 - read_low_state: Read the low state from Go2/B2
 - read_low_state_hg: Read the low state from G1/H1/H1-2
 - read_motion_state: Read the sport mode state from Go2/B2
 - read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
 - record_bag: Ros bag recording example.
-- sport_mode_ctrl: High level control for Go2.
+- go2/go2_sport_client: High level control for Go2.
 
 Open a terminal and input:
 ```bash

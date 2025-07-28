@@ -19,6 +19,18 @@ endif()
 include_directories(include include/common include/nlohmann)
 link_directories(src)
 
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+    add_compile_definitions(ROS_DISTRO_HUMBLE)
+elseif($ENV{ROS_DISTRO} STREQUAL "foxy")
+    add_compile_definitions(ROS_DISTRO_FOXY)
+endif()
+
+if(ROS_DISTRO_HUMBLE)
+    message(STATUS "Compiling for ROS 2 Humble")
+elseif(ROS_DISTRO_FOXY)
+    message(STATUS "Compiling for ROS 2 Foxy")
+endif()
+
 set (
   DEPENDENCY_LIST
   unitree_go
