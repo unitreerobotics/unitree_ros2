@@ -1,0 +1,21 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ROS_DISTRO=foxy
+
+RUN sed -i 's|http://.*archive.ubuntu.com|http://mirrors.aliyun.com|g' /etc/apt/sources.list && \
+    sed -i 's|http://.*security.ubuntu.com|http://mirrors.aliyun.com|g' /etc/apt/sources.list
+
+# install ros2 
+RUN apt-get update && apt-get install -y curl gnupg2 lsb-release software-properties-common 
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list
+
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop git vim wget
+RUN apt-get install -y cmake g++ build-essential ros-foxy-rmw-cyclonedds-cpp ros-foxy-rosidl-generator-dds-idl
+RUN apt install -y python3-colcon-common-extensions
+
+
+WORKDIR /workspace
+CMD ["bash"]

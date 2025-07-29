@@ -19,6 +19,18 @@ endif()
 include_directories(include include/common include/nlohmann)
 link_directories(src)
 
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+    add_compile_definitions(ROS_DISTRO_HUMBLE)
+elseif($ENV{ROS_DISTRO} STREQUAL "foxy")
+    add_compile_definitions(ROS_DISTRO_FOXY)
+endif()
+
+if(ROS_DISTRO_HUMBLE)
+    message(STATUS "Compiling for ROS 2 Humble")
+elseif(ROS_DISTRO_FOXY)
+    message(STATUS "Compiling for ROS 2 Foxy")
+endif()
+
 set (
   DEPENDENCY_LIST
   unitree_go
@@ -46,7 +58,12 @@ add_executable(read_low_state_hg src/read_low_state_hg.cpp)
 add_executable(read_motion_state src/read_motion_state.cpp)
 add_executable(read_wireless_controller src/read_wireless_controller.cpp)
 #add_executable(record_bag src/record_bag.cpp)
-add_executable(sport_mode_ctrl src/sport_mode_ctrl.cpp src/common/ros2_sport_client.cpp)
+add_executable(go2_sport_client src/go2/go2_sport_client.cpp src/common/ros2_sport_client.cpp)
+add_executable(go2_stand_example src/go2/go2_stand_example.cpp src/common/motor_crc.cpp)
+
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+  add_executable(go2_robot_state_client src/go2/go2_robot_state_client.cpp src/common/motor_crc.cpp)
+endif()
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
@@ -56,8 +73,12 @@ ament_target_dependencies(read_low_state_hg ${DEPENDENCY_LIST})
 ament_target_dependencies(read_motion_state ${DEPENDENCY_LIST})
 ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
 #ament_target_dependencies(record_bag ${DEPENDENCY_LIST})
-ament_target_dependencies(sport_mode_ctrl ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_sport_client ${DEPENDENCY_LIST})
+ament_target_dependencies(go2_stand_example ${DEPENDENCY_LIST})
 
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+  ament_target_dependencies(go2_robot_state_client ${DEPENDENCY_LIST})
+endif()
 
 install(TARGETS 
         low_level_ctrl
@@ -67,8 +88,13 @@ install(TARGETS
         read_low_state_hg
         read_motion_state
         read_wireless_controller
-        sport_mode_ctrl
+        go2_sport_client
+        go2_stand_example
         DESTINATION)
+
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+  install(TARGETS go2_robot_state_client)
+endif()
 
 
 if(BUILD_TESTING)
