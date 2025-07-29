@@ -8,8 +8,14 @@ ROS2也使用DDS作为通讯工具，因此Go2、B2和H1机器人的底层可以
 测试过的系统和ros2版本
 |系统|ros2 版本|
 |--|--|
-|Ubuntu 20.04|foxy|
-|Ubuntu 22.04|humble|
+|Ubuntu 20.04|foxy (许多新功能将不再支持 foxy)|
+|Ubuntu 22.04|humble (推荐)|
+
+如果你想直接使用 `Docker` 开发环境，你可以参考 `.devcontainer` 文件夹中的 `Dockerfile` 相关内容。
+你也可以使用 VSCode 或其他 IDE 的 Dev Container 功能来创建一个开发环境，或者使用 `Github` 的 `codespace` 快速创建一个开发环境。
+如果你确实碰到了编译问题，可以参考 `.github/workflows/` 中的编译脚本，或者在 `issues` 中提问。
+
+## 安装 Unitree 机器人ros2功能包
 
 以下以ros2 foxy为例，如需要其他版本的ros2，在相应的地方替换foxy为当前的ros2版本名称即可：
 
@@ -32,7 +38,7 @@ git clone https://github.com/unitreerobotics/unitree_ros2
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
 sudo apt install ros-foxy-rosidl-generator-dds-idl
 ```
-### 2. 编译cyclone-dds
+### 2. 编译cyclone-dds(如果使用 Humble 可跳过此步骤)
 由于 Unitree 机器人(sdk2 版本) 使用的是cyclonedds 0.10.2，因此需要先更改ROS2的dds实现。见：https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html
 
 编译cyclonedds前请确保在启动终端时**没有**自动source ros2相关的环境变量，否则会导致cyclonedds编译报错。如果安装ROS2时在~/.bashrc中添加了 " source /opt/ros/foxy/setup.bash "，需要修改 ~/.bashrc 文件将其删除：
@@ -139,6 +145,7 @@ ros2 topic list
 - record_bag：Ros Bag 录制示例。
 - go2/go2_sport_client：Go2 的高级控制。
 - go2/go2_stand_example：Go2 的站立示例。
+- go2/go2_robot_state_client：的机器人状态示例。
 
 ctrl+alt+T打开终端，在终端中执行如下命令，编译测试例程：
 ```bash
@@ -332,7 +339,7 @@ unsigned long reserve[3];   //保留位
 ```bash
 ros2 topic list
 ```
-![image](https://z1.ax1x.com/2023/10/20/piFtteJ.png)
+![image](docs/image/piFtteJ.png)
 
 可以找到雷达点云的 topic：
 ```bash
@@ -343,7 +350,7 @@ utlidar/cloud
 ros2 topic echo --no-arr /utlidar/cloud
 ```
 可以看到点云数据的frame_id为utlidar_lidar
-![image](https://z1.ax1x.com/2023/10/20/piFtdF1.png)
+![image](docs/image/piFtdF1.png)
 
 最后打开rviz2：
 ```
@@ -351,7 +358,7 @@ ros2 run rviz2 rviz2
 ```
 在rviz2添加Go2点云topic: utlidar/cloud。修改world_frame为utlidar_lidar即可看到雷达输出的点云。
 
-![image](https://z1.ax1x.com/2023/10/20/piFtsyD.png)
-![image](https://z1.ax1x.com/2023/10/20/piFtyOe.png)
+![image](docs/image/piFtsyD.png)
+![image](docs/image/piFtyOe.png)
 
 
