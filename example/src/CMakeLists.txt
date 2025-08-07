@@ -79,7 +79,9 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
 
   add_executable(g1_ankle_swing_example src/g1/lowlevel/g1_ankle_swing_example.cpp src/common/motor_crc_hg.cpp)
   target_compile_features(g1_ankle_swing_example PRIVATE cxx_std_20)
-  
+
+  add_executable(g1_dual_arm_example src/g1/lowlevel/g1_dual_arm_example.cpp src/common/motor_crc_hg.cpp)
+  target_compile_features(g1_dual_arm_example PRIVATE cxx_std_20)
 endif()
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
@@ -101,6 +103,7 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
   target_include_directories(g1_dex3_example PRIVATE ${EIGEN3_INCLUDE_DIR})
   ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
   ament_target_dependencies(g1_ankle_swing_example ${DEPENDENCY_LIST})
+  ament_target_dependencies(g1_dual_arm_example ${DEPENDENCY_LIST})
 endif()
 
 install(TARGETS 
@@ -122,6 +125,7 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
   install(TARGETS g1_dex3_example)
   install(TARGETS g1_loco_client_example)
   install(TARGETS g1_ankle_swing_example)
+  install(TARGETS g1_dual_arm_example)
 endif()
 
 
