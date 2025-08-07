@@ -82,6 +82,9 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
 
   add_executable(g1_dual_arm_example src/g1/lowlevel/g1_dual_arm_example.cpp src/common/motor_crc_hg.cpp)
   target_compile_features(g1_dual_arm_example PRIVATE cxx_std_20)
+
+  add_executable(g1_audio_client_example src/g1/audio_client/g1_audio_client_example.cpp)
+  target_compile_features(g1_audio_client_example PRIVATE cxx_std_20)
 endif()
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
@@ -104,6 +107,7 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
   ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
   ament_target_dependencies(g1_ankle_swing_example ${DEPENDENCY_LIST})
   ament_target_dependencies(g1_dual_arm_example ${DEPENDENCY_LIST})
+  ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
 endif()
 
 install(TARGETS 
@@ -126,6 +130,7 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
   install(TARGETS g1_loco_client_example)
   install(TARGETS g1_ankle_swing_example)
   install(TARGETS g1_dual_arm_example)
+  install(TARGETS g1_audio_client_example)
 endif()
 
 

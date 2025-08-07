@@ -34,6 +34,8 @@ Checks: >
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
   -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-vararg
 
 
 
