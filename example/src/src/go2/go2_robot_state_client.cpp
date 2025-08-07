@@ -27,12 +27,12 @@ class Go2RobotStateClientNode : public rclcpp::Node {
   }
 
   void RobotControl() { 
-    int32_t status;
+    int32_t status = 0;
     int32_t ret = robot_state_client_.SetReportFreq(3, 30);
     std::cout << "Call SetReportFreq[3,30] ret:" << ret <<  std::endl;
 
     sleep(5); 
-    auto serviceName = "sport_mode";
+    const auto *serviceName = "sport_mode";
     ret = robot_state_client_.ServiceSwitch(serviceName, 0, status);
     std::cout << "Call ServiceSwitch[" << serviceName << ",0] ret:" << ret <<  std::endl;
 
@@ -47,7 +47,8 @@ class Go2RobotStateClientNode : public rclcpp::Node {
     ret = robot_state_client_.ServiceList(serviceStateList);
     std::cout << "Call ServiceList ret:" << ret <<  std::endl;
 
-    size_t i, count=serviceStateList.size();
+    size_t i = 0;
+    size_t count=serviceStateList.size();
     std::cout << "serviceStateList size:" << count << std::endl;
 
     for (i=0; i<count; i++)
