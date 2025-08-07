@@ -106,7 +106,8 @@ class LowLevelCmdSender : public rclcpp::Node {
       // [Stage 1]: set robot to zero posture
       for (int i = 0; i < G1_NUM_MOTOR; ++i) {
         double const ratio = clamp(time_ / duration_, 0.0, 1.0);
-        low_command_.motor_cmd[i].q = (1. - ratio) * motor_[i].q;
+        low_command_.motor_cmd[i].q =
+            static_cast<float>((1. - ratio) * motor_[i].q);
       }
     } else {
       // [Stage 2]: swing ankle's PR
@@ -126,22 +127,26 @@ class LowLevelCmdSender : public rclcpp::Node {
       float const Kp_Roll = 80;
       float const Kd_Roll = 1;
 
-      low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].q = L_P_des;
+      low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].q =
+          static_cast<float>(L_P_des);
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].dq = 0;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].kp = Kp_Pitch;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].kd = Kd_Pitch;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_PITCH].tau = 0;
-      low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].q = L_R_des;
+      low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].q =
+          static_cast<float>(L_R_des);
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].dq = 0;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].kp = Kp_Roll;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].kd = Kd_Roll;
       low_command_.motor_cmd[G1JointIndex::LEFT_ANKLE_ROLL].tau = 0;
-      low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].q = R_P_des;
+      low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].q =
+          static_cast<float>(R_P_des);
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].dq = 0;
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].kp = Kp_Pitch;
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].kd = Kd_Pitch;
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_PITCH].tau = 0;
-      low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_ROLL].q = R_R_des;
+      low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_ROLL].q =
+          static_cast<float>(R_R_des);
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_ROLL].dq = 0;
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_ROLL].kp = Kp_Roll;
       low_command_.motor_cmd[G1JointIndex::RIGHT_ANKLE_ROLL].kd = Kd_Roll;
@@ -150,13 +155,15 @@ class LowLevelCmdSender : public rclcpp::Node {
       double const max_wrist_roll_angle = 0.5;  // [rad]
       double const WristRoll_des =
           max_wrist_roll_angle * std::sin(2.0 * M_PI * t);
-      low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].q = WristRoll_des;
+      low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].q =
+          static_cast<float>(WristRoll_des);
       low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].dq = 0;
       low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].kp = 50;
       low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].kd = 1;
       low_command_.motor_cmd[G1JointIndex::LEFT_WRIST_ROLL].tau = 0;
 
-      low_command_.motor_cmd[G1JointIndex::RIGHT_WRIST_ROLL].q = WristRoll_des;
+      low_command_.motor_cmd[G1JointIndex::RIGHT_WRIST_ROLL].q =
+          static_cast<float>(WristRoll_des);
       low_command_.motor_cmd[G1JointIndex::RIGHT_WRIST_ROLL].dq = 0;
       low_command_.motor_cmd[G1JointIndex::RIGHT_WRIST_ROLL].kp = 50;
       low_command_.motor_cmd[G1JointIndex::RIGHT_WRIST_ROLL].kd = 1;
@@ -225,10 +232,10 @@ class LowLevelCmdSender : public rclcpp::Node {
       lowstate_subscriber_;              // ROS2 Subscriber
   unitree_hg::msg::LowCmd low_command_;  // Unitree hg lowcmd message
   unitree_hg::msg::IMUState imu_;        // Unitree hg IMU message
-  unitree_hg::msg::MotorState
-      motor_[G1_NUM_MOTOR];    // Unitree hg motor state message
+  std::array<unitree_hg::msg::MotorState, G1_NUM_MOTOR>
+      motor_;                  // Unitree hg motor state message
   double control_dt_ = 0.002;  // 2ms
-  int timer_dt_ = control_dt_ * 1000;
+  int timer_dt_ = static_cast<int>(control_dt_ * 1000);
   double time_;  // Running time count
   double duration_;
   PRorAB mode_ = PRorAB::PR;
