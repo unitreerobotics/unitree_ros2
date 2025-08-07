@@ -65,6 +65,9 @@ add_executable(go2_stand_example src/go2/go2_stand_example.cpp src/common/motor_
 if($ENV{ROS_DISTRO} STREQUAL "humble")
   add_executable(go2_robot_state_client src/go2/go2_robot_state_client.cpp src/common/motor_crc.cpp) 
 
+  add_executable(g1_arm_sdk_dds_example src/g1/high_level/g1_arm_sdk_dds_example.cpp src/common/motor_crc.cpp)
+  target_compile_features(g1_arm_sdk_dds_example PRIVATE cxx_std_20)
+
   add_executable(g1_dex3_example src/g1/dex3/g1_dex3_example.cpp src/common/motor_crc.cpp)
   target_compile_features(g1_dex3_example PRIVATE cxx_std_20)
 endif()
@@ -82,6 +85,7 @@ ament_target_dependencies(go2_stand_example ${DEPENDENCY_LIST})
 
 if($ENV{ROS_DISTRO} STREQUAL "humble")
   ament_target_dependencies(go2_robot_state_client ${DEPENDENCY_LIST})
+  ament_target_dependencies(g1_arm_sdk_dds_example ${DEPENDENCY_LIST})
   ament_target_dependencies(g1_dex3_example ${DEPENDENCY_LIST})
   target_include_directories(g1_dex3_example PRIVATE ${EIGEN3_INCLUDE_DIR})
 endif()
@@ -100,6 +104,7 @@ install(TARGETS
 
 if($ENV{ROS_DISTRO} STREQUAL "humble")
   install(TARGETS go2_robot_state_client)
+  install(TARGETS g1_arm_sdk_dds_example)
   install(TARGETS g1_dex3_example)
 endif()
 
