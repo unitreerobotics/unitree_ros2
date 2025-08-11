@@ -69,8 +69,8 @@ class Dex3HandNode : public rclcpp::Node {  // NOLINT
     PrintHelp();
 
     // Create timer for state machine
-    thread_control_ = std::jthread([this] { Loop(); });
-    thread_input_ = std::jthread([this] {
+    thread_control_ = std::thread([this] { Loop(); });
+    thread_input_ = std::thread([this] {
       while (true) {
         HandleUserInput();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -289,7 +289,8 @@ class Dex3HandNode : public rclcpp::Node {  // NOLINT
     std::cout << "-- " << hand_side_ << " Hand State --\n";
     std::cout << "Current State: " << stateToString(current_state_) << "\n";
     std::cout << "Position: " << q.transpose() << "\n";
-    std::cout << "PressSensorState(example[0][0]): " << state_.press_sensor_state[0].pressure[0] << std::endl;
+    std::cout << "PressSensorState(example[0][0]): "
+              << state_.press_sensor_state[0].pressure[0] << std::endl;
     PrintHelp();
   }
 
@@ -336,8 +337,8 @@ class Dex3HandNode : public rclcpp::Node {  // NOLINT
   std::atomic<State> current_state_{INIT};
   std::atomic<State> last_state_{INIT};
   std::mutex state_mutex_;
-  std::jthread thread_control_;
-  std::jthread thread_input_;
+  std::thread thread_control_;
+  std::thread thread_input_;
 };
 
 int main(int argc, char** argv) {

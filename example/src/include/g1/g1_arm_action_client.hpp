@@ -7,7 +7,7 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/qos.hpp>
 #include <string>
-
+#include "patch.hpp"
 #include "nlohmann/json.hpp"
 #include "unitree_api/msg/request.hpp"
 #include "unitree_api/msg/response.hpp"

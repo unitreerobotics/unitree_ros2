@@ -7,6 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "nlohmann/json.hpp"
+#include "patch.hpp"
 #include "unitree_api/msg/request.hpp"
 #include "unitree_api/msg/response.hpp"
 const int32_t ROBOT_SPORT_API_ID_DAMP = 1001;
@@ -72,7 +73,7 @@ class SportClient {
         "/api/sport/request", 10);
   }
 
-  template<typename Request,typename Response>
+  template <typename Request, typename Response>
   nlohmann::json Call(const Request &req) {
     std::promise<typename Response::SharedPtr> response_promise;
     auto response_future = response_promise.get_future();
@@ -316,16 +317,13 @@ class SportClient {
    * @param flag: true to enable, false to disable
    */
   void AutoRecoverySet(unitree_api::msg::Request &req, bool flag);
-  
-  #ifdef ROS_DISTRO_HUMBLE
   /*
    * @brief AutoRecoveryGet
    * @api: 2055
-   * NOTICE!!!: This function cannot be used in ros2 callback, and only available on ros2 humble.
-   * 
+   * NOTICE!!!: This function cannot be used in ros2 callback.
+   *
    */
   void AutoRecoveryGet(unitree_api::msg::Request &req, bool &flag);
-  #endif
   /*
    * @brief SwitchAvoidMode
    * @api: 2058

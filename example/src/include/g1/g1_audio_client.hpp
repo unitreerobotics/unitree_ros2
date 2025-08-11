@@ -5,6 +5,7 @@
 
 #include "common/time_tools.hpp"
 #include "nlohmann/json.hpp"
+#include "patch.hpp"
 #include "unitree_api/msg/request.hpp"
 #include "unitree_api/msg/response.hpp"
 namespace unitree::ros2::g1 {
@@ -41,7 +42,8 @@ class AudioClient : public rclcpp::Node {
         });
 
     req_puber_->publish(req);
-    auto status = response_future.wait_for(std::chrono::seconds(timeout_seconds));
+    auto status =
+        response_future.wait_for(std::chrono::seconds(timeout_seconds));
 
     unitree_api::msg::Response response;
     if (status == std::future_status::ready) {
@@ -74,8 +76,8 @@ class AudioClient : public rclcpp::Node {
     js["text"] = text;
     js["speaker_id"] = speaker_id;
     req.parameter = js.dump();
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js, 10);
+    auto res = Call<unitree_api::msg::Request, unitree_api::msg::Response>(
+        req, js, 10);
     return res;
   }
 

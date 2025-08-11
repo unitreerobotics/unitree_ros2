@@ -16,7 +16,7 @@ class UnitreeG1ControlNode : public rclcpp::Node {
   explicit UnitreeG1ControlNode(const std::map<std::string, std::string> &args)
       : Node("unitree_g1_control_node"), args_(args), client_(this) {
     // Process commands
-    thread_ = std::jthread([this] {
+    thread_ = std::thread([this] {
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
       ProcessCommands();
       rclcpp::shutdown();
@@ -24,7 +24,7 @@ class UnitreeG1ControlNode : public rclcpp::Node {
   }
 
  private:
-  std::jthread thread_;
+  std::thread thread_;
   void ProcessCommands() {  // NOLINT
     for (const auto &arg_pair : args_) {
       RCLCPP_INFO(this->get_logger(),

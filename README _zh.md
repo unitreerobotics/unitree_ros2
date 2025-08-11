@@ -8,7 +8,7 @@ ROS2也使用DDS作为通讯工具，因此Go2、B2和H1机器人的底层可以
 测试过的系统和ros2版本
 |系统|ros2 版本|
 |--|--|
-|Ubuntu 20.04|foxy (许多新功能将不再支持 foxy)|
+|Ubuntu 20.04|foxy|
 |Ubuntu 22.04|humble (推荐)|
 
 如果你想直接使用 `Docker` 开发环境，你可以参考 `.devcontainer` 文件夹中的 `Dockerfile` 相关内容。

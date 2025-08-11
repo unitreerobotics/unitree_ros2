@@ -16,12 +16,11 @@ class G1ArmActionNode : public rclcpp::Node {
   explicit G1ArmActionNode() : Node("g1_arm_action_node") {
     client_ = std::make_shared<unitree::robot::g1::G1ArmActionClient>(this);
 
-    thread_ = std::jthread([this] {
+    thread_ = std::thread([this] {
       using namespace std::chrono_literals;
       while (true) {
         std::this_thread::sleep_for(100ms);
         checkForInput();
-
       }
     });
   }
@@ -124,7 +123,7 @@ class G1ArmActionNode : public rclcpp::Node {
     }
   }
 
-  std::jthread thread_;
+  std::thread thread_;
   std::shared_ptr<unitree::robot::g1::G1ArmActionClient> client_;
 };
 

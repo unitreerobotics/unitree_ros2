@@ -21,38 +21,46 @@ using LowState = unitree_hg::msg::LowState;
 
 class ArmLowLevelController : public rclcpp::Node {
 #if ARM_TYPE == G1ARM5
-  using enum G1Arm5JointIndex;
   static constexpr int NUM_ARM_JOINTS = 13;
+  static constexpr auto NOT_USED_JOINT = G1Arm5JointIndex::NOT_USED_JOINT;
   std::array<G1Arm5JointIndex, NUM_ARM_JOINTS> arm_joints_ = {
-      LEFT_SHOULDER_PITCH, LEFT_SHOULDER_ROLL, LEFT_SHOULDER_YAW,
-      LEFT_ELBOW_PITCH,    LEFT_ELBOW_ROLL,    RIGHT_SHOULDER_PITCH,
-      RIGHT_SHOULDER_ROLL, RIGHT_SHOULDER_YAW, RIGHT_ELBOW_PITCH,
-      RIGHT_ELBOW_ROLL,    WAIST_YAW,          WAIST_ROLL,
-      WAIST_PITCH};
+      G1Arm5JointIndex::LEFT_SHOULDER_PITCH,
+      G1Arm5JointIndex::LEFT_SHOULDER_ROLL,
+      G1Arm5JointIndex::LEFT_SHOULDER_YAW,
+      G1Arm5JointIndex::LEFT_ELBOW_PITCH,
+      G1Arm5JointIndex::LEFT_ELBOW_ROLL,
+      G1Arm5JointIndex::RIGHT_SHOULDER_PITCH,
+      G1Arm5JointIndex::RIGHT_SHOULDER_ROLL,
+      G1Arm5JointIndex::RIGHT_SHOULDER_YAW,
+      G1Arm5JointIndex::RIGHT_ELBOW_PITCH,
+      G1Arm5JointIndex::RIGHT_ELBOW_ROLL,
+      G1Arm5JointIndex::WAIST_YAW,
+      G1Arm5JointIndex::WAIST_ROLL,
+      G1Arm5JointIndex::WAIST_PITCH};
 #elif ARM_TYPE == G1ARM7
-  using enum G1Arm7JointIndex;
   static constexpr int NUM_ARM_JOINTS = 17;
+  static constexpr auto NOT_USED_JOINT = G1Arm7JointIndex::NOT_USED_JOINT;
   std::array<G1Arm7JointIndex, NUM_ARM_JOINTS> arm_joints_ = {
       // Left arm
-      LEFT_SHOULDER_PITCH,
-      LEFT_SHOULDER_ROLL,
-      LEFT_SHOULDER_YAW,
-      LEFT_ELBOW,
-      LEFT_WRIST_ROLL,
-      LEFT_WRIST_PITCH,
-      LEFT_WRIST_YAW,
+      G1Arm7JointIndex::LEFT_SHOULDER_PITCH,
+      G1Arm7JointIndex::LEFT_SHOULDER_ROLL,
+      G1Arm7JointIndex::LEFT_SHOULDER_YAW,
+      G1Arm7JointIndex::LEFT_ELBOW,
+      G1Arm7JointIndex::LEFT_WRIST_ROLL,
+      G1Arm7JointIndex::LEFT_WRIST_PITCH,
+      G1Arm7JointIndex::LEFT_WRIST_YAW,
       // Right arm
-      RIGHT_SHOULDER_PITCH,
-      RIGHT_SHOULDER_ROLL,
-      RIGHT_SHOULDER_YAW,
-      RIGHT_ELBOW,
-      RIGHT_WRIST_ROLL,
-      RIGHT_WRIST_PITCH,
-      RIGHT_WRIST_YAW,
+      G1Arm7JointIndex::RIGHT_SHOULDER_PITCH,
+      G1Arm7JointIndex::RIGHT_SHOULDER_ROLL,
+      G1Arm7JointIndex::RIGHT_SHOULDER_YAW,
+      G1Arm7JointIndex::RIGHT_ELBOW,
+      G1Arm7JointIndex::RIGHT_WRIST_ROLL,
+      G1Arm7JointIndex::RIGHT_WRIST_PITCH,
+      G1Arm7JointIndex::RIGHT_WRIST_YAW,
       // Waist
-      WAIST_YAW,
-      WAIST_ROLL,
-      WAIST_PITCH,
+      G1Arm7JointIndex::WAIST_YAW,
+      G1Arm7JointIndex::WAIST_ROLL,
+      G1Arm7JointIndex::WAIST_PITCH,
   };
 #endif
  public:

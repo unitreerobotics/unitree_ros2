@@ -250,9 +250,7 @@ auto Control(std::shared_ptr<unitree::ros2::g1::AudioClient> client,
   client->LedControl(0, 0, 0);
   std::this_thread::sleep_for(std::chrono::seconds(2));
   client->LedControl(0, 0, 255);
-
 }
-
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -266,7 +264,7 @@ int main(int argc, char **argv) {
   try {
     rclcpp::init(argc, argv);
     auto client = std::make_shared<unitree::ros2::g1::AudioClient>();
-    auto thread_ = std::jthread([client, audio_file_path]() {
+    auto thread_ = std::thread([client, audio_file_path]() {
       using namespace std::chrono_literals;
       std::this_thread::sleep_for(1s);
       Control(client, audio_file_path);

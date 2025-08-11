@@ -10,6 +10,7 @@
 
 #include "detail/exceptions.hpp"
 #include "nlohmann/json.hpp"
+#include "patch.hpp"
 #include "unitree_api/msg/request.hpp"
 #include "unitree_api/msg/response.hpp"
 
@@ -68,10 +69,9 @@ class LocoClient {
         std::cout << "error code: " << response.header.status.code << std::endl;
         return response.header.status.code;
       }
-      try{
-
-      js = nlohmann::json::parse(response.data.data());
-      }catch (nlohmann::detail::exception& e){
+      try {
+        js = nlohmann::json::parse(response.data.data());
+      } catch (nlohmann::detail::exception& e) {
         std::cout << "parse error" << std::endl;
       }
       return 0;

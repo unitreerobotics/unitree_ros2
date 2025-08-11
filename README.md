@@ -12,7 +12,7 @@ DDS is alos used in ROS2 as a communication mechanism. Therefore, the underlying
 Tested systems and ROS2 distro
 |systems|ROS2 distro|
 |--|--|
-|Ubuntu 20.04|foxy (many new features will no longer support Foxy)|
+|Ubuntu 20.04|foxy|
 |Ubuntu 22.04|humble (recommend)|
 
 If you want to directly use the `Docker development environment`, you can refer to the `Dockerfile` related content in the `.devcontainer` folder.
