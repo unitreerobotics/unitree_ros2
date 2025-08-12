@@ -3,7 +3,9 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include "base_client.hpp"
 #include "common/time_tools.hpp"
+#include "common/ut_errror.hpp"
 #include "nlohmann/json.hpp"
 #include "patch.hpp"
 #include "unitree_api/msg/request.hpp"
@@ -20,53 +22,12 @@ constexpr int32_t ROBOT_API_ID_AUDIO_SET_RGB_LED = 1010;
 
 class AudioClient : public rclcpp::Node {
   uint32_t tts_index_ = 0;
-  rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber_;
+  BaseClient base_client_;
 
  public:
   AudioClient()
       : rclcpp::Node("audio_client"),
-        req_puber_(this->create_publisher<unitree_api::msg::Request>(
-            "/api/voice/request", rclcpp::QoS(10))) {};
-  template <typename Request, typename Response>
-  int32_t Call(Request req, nlohmann::json &js, int timeout_seconds = 2) {
-    std::promise<typename Response::SharedPtr> response_promise;
-    auto response_future = response_promise.get_future();
-    const auto api_id = req.header.identity.api_id;
-    req.header.identity.id = unitree::common::GetSystemUptimeInNanoseconds();
-    auto req_suber_ = this->create_subscription<Response>(
-        "/api/voice/response", rclcpp::QoS(10),
-        [&response_promise, api_id](const typename Response::SharedPtr data) {
-          if (data->header.identity.api_id == api_id) {
-            response_promise.set_value(data);
-          }
-        });
-
-    req_puber_->publish(req);
-    auto status =
-        response_future.wait_for(std::chrono::seconds(timeout_seconds));
-
-    unitree_api::msg::Response response;
-    if (status == std::future_status::ready) {
-      response = *response_future.get();
-      if (response.header.status.code != 0) {
-        std::cout << "error code: " << response.header.status.code << std::endl;
-        return response.header.status.code;
-      }
-      try {
-        js = nlohmann::json::parse(response.data.data());
-      } catch (nlohmann::detail::exception &e) {
-        std::cout << "parse error" << std::endl;
-      }
-      return 0;
-      std::cout << "task finish." << std::endl;
-    }
-    if (status == std::future_status::timeout) {
-      std::cout << "task timeout." << std::endl;
-      return -1;
-    }
-    std::cout << "task error." << std::endl;
-    return -2;
-  }
+        base_client_(this, "/api/voice/request", "/api/voice/response") {};
 
   int32_t TtsMaker(const std::string &text, int32_t speaker_id) {
     nlohmann::json js;
@@ -76,17 +37,14 @@ class AudioClient : public rclcpp::Node {
     js["text"] = text;
     js["speaker_id"] = speaker_id;
     req.parameter = js.dump();
-    auto res = Call<unitree_api::msg::Request, unitree_api::msg::Response>(
-        req, js, 10);
-    return res;
+    return base_client_.Call(req);
   }
 
   int32_t GetVolume(uint8_t &volume) {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_AUDIO_GET_VOLUME;
     nlohmann::json js;
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    auto res = base_client_.Call(req, js);
     if (res == 0) {
       js["volume"].get_to(volume);
     }
@@ -99,9 +57,7 @@ class AudioClient : public rclcpp::Node {
     nlohmann::json js;
     js["volume"] = volume;
     req.parameter = js.dump();
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
-    return res;
+    return base_client_.Call(req);
   }
 
   int32_t PlayStream(const std::string &app_name, const std::string &stream_id,
@@ -113,9 +69,7 @@ class AudioClient : public rclcpp::Node {
     js["stream_id"] = stream_id;
     req.parameter = js.dump();
     req.binary = pcm_data;
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
-    return res;
+    return base_client_.Call(req);
   }
 
   int32_t PlayStop(const std::string &app_name) {
@@ -124,9 +78,7 @@ class AudioClient : public rclcpp::Node {
     nlohmann::json js;
     js["app_name"] = app_name;
     req.parameter = js.dump();
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
-    return res;
+    return base_client_.Call(req);
   }
 
   int32_t LedControl(uint8_t r, uint8_t g, uint8_t b) {
@@ -137,9 +89,7 @@ class AudioClient : public rclcpp::Node {
     js["G"] = g;
     js["B"] = b;
     req.parameter = js.dump();
-    auto res =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
-    return res;
+    return base_client_.Call(req);
   }
 };
 

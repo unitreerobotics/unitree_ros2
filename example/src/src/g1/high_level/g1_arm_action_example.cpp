@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 
+#include "common/ut_errror.hpp"
 #include "g1/g1_arm_action_client.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -29,18 +30,16 @@ class G1ArmActionNode : public rclcpp::Node {
   void checkForInput() {
     static std::string line;
     static bool getting_input = false;
-    RCLCPP_INFO(this->get_logger(), "G1 Arm Action Node initialized");
-    RCLCPP_INFO(this->get_logger(), "Usage:");
-    RCLCPP_INFO(this->get_logger(), "  - 0: print supported actions.");
-    RCLCPP_INFO(this->get_logger(), "  - an id: execute an action.");
-    RCLCPP_INFO(this->get_logger(), "Attention:");
     RCLCPP_INFO(this->get_logger(),
-                "  Some actions will not be displayed on the APP,");
-    RCLCPP_INFO(this->get_logger(), "  but can be executed by the program.");
-    RCLCPP_INFO(this->get_logger(),
-                "  These actions may cause the robot to fall,");
-    RCLCPP_INFO(this->get_logger(), "  so please execute them with caution.");
-
+                "G1 Arm Action Node initialized\n"
+                "Usage:\n"
+                "  - 0: print supported actions.\n"
+                "  - an id: execute an action.\n"
+                "Attention:\n"
+                "  Some actions will not be displayed on the APP,\n"
+                "  but can be executed by the program.\n"
+                "  These actions may cause the robot to fall,\n"
+                "  so please execute them with caution.");
     if (!getting_input) {
       std::cout << "\nEnter action ID (or 'q' to quit): ";
       getting_input = true;
@@ -70,8 +69,7 @@ class G1ArmActionNode : public rclcpp::Node {
       std::string action_list_data;
       int32_t ret = client_->GetActionList(action_list_data);
       if (ret != 0) {
-        RCLCPP_ERROR(this->get_logger(),
-                     "Failed to get action list, error code: %d", ret);
+        handleActionError(ret);
         return;
       }
       RCLCPP_INFO(this->get_logger(), "Available actions:\n%s",
@@ -88,39 +86,17 @@ class G1ArmActionNode : public rclcpp::Node {
   }
 
   void handleActionError(int32_t error_code) {
-    switch (error_code) {
-      case unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_ARMSDK:
-        RCLCPP_ERROR(this->get_logger(), "%s",
-                     unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_ARMSDK_DESC);
-        break;
-      case unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_HOLDING:
-        RCLCPP_ERROR(this->get_logger(), "%s",
-                     unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_HOLDING_DESC);
-        break;
-      case unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_ACTION_ID:
-        RCLCPP_ERROR(
-            this->get_logger(), "%s",
-            unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_ACTION_ID_DESC);
-        break;
-      case unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_FSM_ID:
-        RCLCPP_ERROR(
-            this->get_logger(),
-            "The actions are only supported in fsm id {500, 501, 801}");
-        RCLCPP_ERROR(this->get_logger(),
-                     "You can subscribe the topic rt/sportmodestate to check "
-                     "the fsm id.");
-        RCLCPP_ERROR(this->get_logger(),
-                     "And in the state 801, the actions are only supported in "
-                     "the fsm mode {0, 3}.");
-        RCLCPP_ERROR(
-            this->get_logger(),
-            "If an error is still returned at this point, ignore this action.");
-        break;
-      default:
-        RCLCPP_ERROR(this->get_logger(),
-                     "Execute action failed, error code: %d", error_code);
-        break;
-    }
+    RCLCPP_ERROR(this->get_logger(), "Execute action failed, error code: %d",
+                 error_code);
+    UT_PRINT_ERR(error_code,
+                 unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_ARMSDK);
+    UT_PRINT_ERR(error_code,
+                 unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_HOLDING);
+    UT_PRINT_ERR(error_code,
+                 unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_ACTION_ID);
+    UT_PRINT_ERR(error_code,
+                 unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_FSM_ID);
+    UT_PRINT_ERR(error_code, UT_ROBOT_TASK_TIMEOUT);
   }
 
   std::thread thread_;

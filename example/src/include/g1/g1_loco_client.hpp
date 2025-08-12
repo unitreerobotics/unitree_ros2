@@ -6,8 +6,9 @@
 #include <limits>
 #include <rclcpp/node.hpp>
 #include <string>
-#include <unitree_api/msg/detail/response__struct.hpp>
 
+#include "base_client.hpp"
+#include "common/ut_errror.hpp"
 #include "detail/exceptions.hpp"
 #include "nlohmann/json.hpp"
 #include "patch.hpp"
@@ -30,67 +31,27 @@ const int32_t ROBOT_API_ID_LOCO_SET_ARM_TASK = 7106;
 const int32_t ROBOT_API_ID_LOCO_SET_SPEED_MODE = 7107;
 
 namespace unitree::robot::g1 {
+
+UT_DECL_ERR(UT_ROBOT_LOCO_ERR_LOCOSTATE_NOT_AVAILABLE, 7301,
+            "LocoState not available.")
+UT_DECL_ERR(UT_ROBOT_LOCO_ERR_INVALID_FSM_ID, 7302, "Invalid fsm id.")
+UT_DECL_ERR(UT_ROBOT_LOCO_ERR_INVALID_TASK_ID, 7303, "Invalid task id.")
+
 class LocoClient {
   rclcpp::Node* node_;
-  rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber_;
+  BaseClient base_client_;
 
  public:
   explicit LocoClient(rclcpp::Node* node)
       : node_(node),
-        req_puber_(node_->create_publisher<unitree_api::msg::Request>(
-            "/api/sport/request", rclcpp::QoS(10))) {}
-  static int64_t GetSystemUptimeInNanoseconds() {
-    struct timespec ts {};
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
-  }
+        base_client_(node_, "/api/sport/request", "/api/sport/response") {}
 
-  template <typename Request, typename Response>
-  int32_t Call(Request req, nlohmann::json& js) {
-    std::promise<typename Response::SharedPtr> response_promise;
-    auto response_future = response_promise.get_future();
-    const auto api_id = req.header.identity.api_id;
-    req.header.identity.id = GetSystemUptimeInNanoseconds();
-    auto req_suber_ = node_->create_subscription<Response>(
-        "/api/sport/response", rclcpp::QoS(10),
-        [&response_promise, api_id](const typename Response::SharedPtr data) {
-          if (data->header.identity.api_id == api_id) {
-            response_promise.set_value(data);
-          }
-        });
-
-    req_puber_->publish(req);
-    auto status = response_future.wait_for(std::chrono::seconds(2));
-
-    unitree_api::msg::Response response;
-    if (status == std::future_status::ready) {
-      response = *response_future.get();
-      if (response.header.status.code != 0) {
-        std::cout << "error code: " << response.header.status.code << std::endl;
-        return response.header.status.code;
-      }
-      try {
-        js = nlohmann::json::parse(response.data.data());
-      } catch (nlohmann::detail::exception& e) {
-        std::cout << "parse error" << std::endl;
-      }
-      return 0;
-      std::cout << "task finish." << std::endl;
-    }
-    if (status == std::future_status::timeout) {
-      std::cout << "task timeout." << std::endl;
-      return -1;
-    }
-    std::cout << "task error." << std::endl;
-    return -2;
-  }
   /*Low Level API Call*/
   int32_t GetFsmId(int& fsm_id) {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       js["data"].get_to(fsm_id);
     }
@@ -102,8 +63,7 @@ class LocoClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_MODE;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       js["data"].get_to(fsm_mode);
     }
@@ -115,8 +75,7 @@ class LocoClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_BALANCE_MODE;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       js["data"].get_to(balance_mode);
     }
@@ -128,8 +87,7 @@ class LocoClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_SWING_HEIGHT;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       std::cout << js.dump() << std::endl;
       js["data"].get_to(swing_height);
@@ -144,8 +102,7 @@ class LocoClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_STAND_HEIGHT;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       js["data"].get_to(stand_height);
     }
@@ -157,8 +114,7 @@ class LocoClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_PHASE;
     nlohmann::json js;
-    int32_t ret =
-        Call<unitree_api::msg::Request, unitree_api::msg::Response>(req, js);
+    int32_t ret = base_client_.Call(req, js);
     if (ret == 0) {
       js["data"].get_to(phase);
     }
@@ -172,10 +128,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = fsm_id;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    auto result = Call<unitree_api::msg::Request, unitree_api::msg::Response>(
-        req, js_res);
-    return result;
+    return base_client_.Call(req);
   }
 
   int32_t SetBalanceMode(int balance_mode) {
@@ -184,9 +137,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = balance_mode;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   int32_t SetSwingHeight(float swing_height) {
@@ -195,9 +146,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = swing_height;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   int32_t SetStandHeight(float stand_height) {
@@ -206,9 +155,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = stand_height;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   int32_t SetVelocity(float vx, float vy, float omega, float duration = 1.F) {
@@ -219,9 +166,7 @@ class LocoClient {
     js["velocity"] = velocity;
     js["duration"] = duration;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   int32_t SetTaskId(int task_id) {
@@ -230,9 +175,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = task_id;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   int32_t SetSpeedMode(int speed_mode) {
@@ -241,9 +184,7 @@ class LocoClient {
     nlohmann::json js;
     js["data"] = speed_mode;
     req.parameter = js.dump();
-    nlohmann::json js_res;
-    return Call<unitree_api::msg::Request, unitree_api::msg::Response>(req,
-                                                                       js_res);
+    return base_client_.Call(req);
   }
 
   /*High Level API Call*/

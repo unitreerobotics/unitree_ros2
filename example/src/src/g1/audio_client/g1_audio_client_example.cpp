@@ -245,11 +245,14 @@ auto Control(std::shared_ptr<unitree::ros2::g1::AudioClient> client,
   }
 
   /*LED Control Example*/
+  std::cout << "led control start" << std::endl;
   client->LedControl(0, 255, 0);
   std::this_thread::sleep_for(std::chrono::seconds(2));
   client->LedControl(0, 0, 0);
   std::this_thread::sleep_for(std::chrono::seconds(2));
   client->LedControl(0, 0, 255);
+  std::cout << "led control end" << std::endl;
+  std::cout << "finish!" << std::endl;
 }
 
 int main(int argc, char **argv) {

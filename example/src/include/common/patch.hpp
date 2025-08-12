@@ -1,3 +1,4 @@
+#pragma once
 #include <rclcpp/rclcpp.hpp>
 
 #include "unitree_api/msg/request.hpp"
