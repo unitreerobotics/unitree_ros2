@@ -6,13 +6,14 @@ info:
 options:
   commits:
     filters:
-      Type: ["feat", "fix", "perf", "refactor"]
+      Type: ["feat", "fix", "perf", "refactor", "chore"]
   commit_groups:
     title_maps:
       feat: Features
       fix: Bug Fixes
       perf: Performance Improvements
       refactor: Code Refactoring
+      chore: Examples
   header:
     pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?\\:\\s(.*)$"
     pattern_maps:

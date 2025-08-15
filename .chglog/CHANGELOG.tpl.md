@@ -6,6 +6,9 @@
 {{ range .Unreleased.CommitGroups -}}
 ### {{ .Title }}
 {{ range .Commits -}}
+  {{- if and (eq .Type "chore") (ne .Scope "example") -}}
+    {{- continue -}}
+  {{- end -}}
 - {{ if .Scope }}**{{ .Scope }}:** {{ end }}{{ .Subject }}
 {{ if .Body }}{{ if not (contains .Body "BREAKING CHANGE:") }}
 {{ "\n" }}
@@ -31,6 +34,9 @@
 {{ range .CommitGroups -}}
 ### {{ .Title }}
 {{ range .Commits -}}
+  {{- if and (eq .Type "chore") (ne .Scope "example") -}}
+    {{- continue -}}
+  {{- end -}}
 - {{ if .Scope }}**{{ .Scope }}:** {{ end }}{{ .Subject }}
 {{ if .Body }}{{ if not (contains .Body "BREAKING CHANGE:") }}{{ .Body }}{{ end }}{{ end }}
 {{ end }}
