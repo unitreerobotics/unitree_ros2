@@ -2,8 +2,43 @@
 ## [Unreleased]
 
 
+<a name="v0.3.0"></a>
+## [v0.3.0] - 2025-08-15
+### Bug Fixes
+- **ros2:** fix the bug in `Ros2 Foxy` where `topic_datistics_collector` did not determine the `header` type and directly used `headers.stamp`, the `Humble` feature was marked in `v0.2.0` and can now be used in `Foxy` as well
+
+
+### Examples
+- **example:** add `g1_audio_client_example`
+
+- **example:** add `g1_dual_arm_example`
+
+- **example:** add `g1_ankle_swing_example`
+
+- **example:** add `g1_loco_client_example`
+
+- **example:** add `g1_arm_action_example`
+
+- **example:** add `g1_arm_sdk_dds_example`
+
+
+### Features
+- **g1:** add dex3 example, modify the dds msg to align with sdk2
+
+
+### BREAKING CHANGE
+
+- `HandCmd.msg` `HandState.msg` `PressSensorState.msg` in `cyclonedds_ws/src/unitree/unitree_hg/msg/` has been modified to align to sdk2,you can view the corresponding file to check the modification items.There is no recommended iteration method, you can update according to your own usage.
+
+
 <a name="v0.2.0"></a>
-## [v0.2.0] - 2025-07-28
+## [v0.2.0] - 2025-07-29
+### Examples
+- **example:** add go2 stand example
+
+- **example:** add go2 sport client example
+
+
 ### Features
 - **deprecate:** delete deprecated functions that are no longer supported
 
@@ -63,5 +98,6 @@ At the same time, you can also refer to the API implementation in `example/src/s
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2025-07-23
 
-[Unreleased]: https://github.com/unitreerobotics/unitree_ros2/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/unitreerobotics/unitree_ros2/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/unitreerobotics/unitree_ros2/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/unitreerobotics/unitree_ros2/compare/v0.1.0...v0.2.0

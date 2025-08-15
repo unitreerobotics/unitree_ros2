@@ -28,7 +28,9 @@ enum TestMode {
   /*---Special motion ---*/
   SIT,
   RISE_SIT,
-  STOP_MOVE
+  MOVE,
+  STOP_MOVE,
+  
 };
 
 class Go2SportClientNode : public rclcpp::Node {
@@ -85,6 +87,9 @@ class Go2SportClientNode : public rclcpp::Node {
           flag_ = 1;
         }
         break;
+      case MOVE:
+        sport_client_.Move(req_, 0.3, 0, 0);
+        break;
       case STOP_MOVE:
         sport_client_.StopMove(req_);
         break;
@@ -140,11 +145,12 @@ int main(int argc, char **argv) {
     std::cerr << "  6: RECOVERY_STAND" << std::endl;
     std::cerr << "  7: SIT" << std::endl;
     std::cerr << "  8: RISE_SIT" << std::endl;
-    std::cerr << "  9: STOP_MOVE" << std::endl;
+    std::cerr << "  9: MOVE" << std::endl;
+    std::cerr << "  10: STOP_MOVE" << std::endl;
     return 1;
   }
 
-  int test_mode = std::atoi(argv[1]);
+  int test_mode = std::atoi(argv[1]); // NOLINT
 
   rclcpp::init(argc, argv);
   auto node = std::make_shared<Go2SportClientNode>(test_mode);

@@ -36,7 +36,7 @@ struct ServiceSwitchRequest {
 
 struct ServiceSwitchResponse {
     std::string name;
-    int32_t status;
+    int32_t status{};
 };
 
 struct SetReportFreqRequest {
@@ -46,22 +46,22 @@ struct SetReportFreqRequest {
 
 
 // JSON serialization/deserialization
-void from_json(const nlohmann::json& j, ServiceState& item) {
+inline void from_json(const nlohmann::json& j, ServiceState& item) {
     j.at("name").get_to(item.name);
     j.at("status").get_to(item.status);
     j.at("protect").get_to(item.protect);
 }
 
-void to_json(nlohmann::json& j, const ServiceSwitchRequest& item) {
+inline void to_json(nlohmann::json& j, const ServiceSwitchRequest& item) {
     j = nlohmann::json{{"name", item.name}, {"switch", item.swit}};
 }
 
-void from_json(const nlohmann::json& j, ServiceSwitchResponse& item) {
+inline void from_json(const nlohmann::json& j, ServiceSwitchResponse& item) {
     j.at("name").get_to(item.name);
     j.at("status").get_to(item.status); 
 }
 
-void to_json(nlohmann::json& j, const SetReportFreqRequest& item) {
+inline void to_json(nlohmann::json& j, const SetReportFreqRequest& item) {
     j = nlohmann::json{{"interval", item.interval}, {"duration", item.duration}};
 }
  
@@ -133,10 +133,10 @@ private:
         return nlohmann::json::parse(response.data.data());
     }
 
-    uint64_t GetSystemUptimeInNanoseconds() {
-        struct timespec ts;
+    static int64_t GetSystemUptimeInNanoseconds() {
+        struct timespec ts{};
         clock_gettime(CLOCK_MONOTONIC, &ts);
-        return static_cast<uint64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
+        return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
     }
 
     rclcpp::Node* node_;

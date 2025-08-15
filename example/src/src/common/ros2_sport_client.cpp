@@ -232,14 +232,14 @@ void SportClient::AutoRecoverySet(unitree_api::msg::Request &req, bool flag) {
   req.header.identity.api_id = ROBOT_SPORT_API_ID_AUTORECOVERY_SET;
   req_puber_->publish(req);
 }
-#ifdef ROS_DISTRO_HUMBLE
+
 void SportClient::AutoRecoveryGet(unitree_api::msg::Request &req, bool &flag) {
 
   req.header.identity.api_id = ROBOT_SPORT_API_ID_AUTORECOVERY_GET;
   auto js = Call<unitree_api::msg::Request, unitree_api::msg::Response>(req);
   flag = js["data"].get<bool>();
 }
-#endif // ROS_DISTRO_HUMBLE
+
 void SportClient::SwitchAvoidMode(unitree_api::msg::Request &req) {
   req.header.identity.api_id = ROBOT_SPORT_API_ID_SWITCHAVOIDMODE;
   req_puber_->publish(req);

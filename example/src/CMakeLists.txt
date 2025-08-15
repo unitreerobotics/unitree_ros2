@@ -19,18 +19,6 @@ endif()
 include_directories(include include/common include/nlohmann)
 link_directories(src)
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")
-    add_compile_definitions(ROS_DISTRO_HUMBLE)
-elseif($ENV{ROS_DISTRO} STREQUAL "foxy")
-    add_compile_definitions(ROS_DISTRO_FOXY)
-endif()
-
-if(ROS_DISTRO_HUMBLE)
-    message(STATUS "Compiling for ROS 2 Humble")
-elseif(ROS_DISTRO_FOXY)
-    message(STATUS "Compiling for ROS 2 Foxy")
-endif()
-
 set (
   DEPENDENCY_LIST
   unitree_go
@@ -49,6 +37,7 @@ find_package(unitree_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
 add_executable(low_level_ctrl_hg src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
@@ -59,11 +48,35 @@ add_executable(read_motion_state src/read_motion_state.cpp)
 add_executable(read_wireless_controller src/read_wireless_controller.cpp)
 #add_executable(record_bag src/record_bag.cpp)
 add_executable(go2_sport_client src/go2/go2_sport_client.cpp src/common/ros2_sport_client.cpp)
-add_executable(go2_stand_example src/go2/go2_stand_example.cpp src/common/motor_crc.cpp)
+target_compile_features(go2_sport_client PRIVATE cxx_std_20)
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")
-  add_executable(go2_robot_state_client src/go2/go2_robot_state_client.cpp src/common/motor_crc.cpp)
-endif()
+add_executable(go2_stand_example src/go2/go2_stand_example.cpp src/common/motor_crc.cpp)
+target_compile_features(go2_stand_example PRIVATE cxx_std_20)
+
+add_executable(go2_robot_state_client src/go2/go2_robot_state_client.cpp src/common/motor_crc.cpp) 
+target_compile_features(go2_robot_state_client PRIVATE cxx_std_20)
+
+add_executable(g1_arm_sdk_dds_example src/g1/high_level/g1_arm_sdk_dds_example.cpp src/common/motor_crc.cpp)
+target_compile_features(g1_arm_sdk_dds_example PRIVATE cxx_std_20)
+
+add_executable(g1_arm_action_example src/g1/high_level/g1_arm_action_example.cpp src/common/motor_crc.cpp)
+target_compile_features(g1_arm_action_example PRIVATE cxx_std_20)
+
+add_executable(g1_dex3_example src/g1/dex3/g1_dex3_example.cpp src/common/motor_crc.cpp)
+target_compile_features(g1_dex3_example PRIVATE cxx_std_20)
+
+add_executable(g1_loco_client_example src/g1/high_level/loco_client_example.cpp src/common/motor_crc.cpp)
+target_compile_features(g1_loco_client_example PRIVATE cxx_std_20)
+
+add_executable(g1_ankle_swing_example src/g1/lowlevel/g1_ankle_swing_example.cpp src/common/motor_crc_hg.cpp)
+target_compile_features(g1_ankle_swing_example PRIVATE cxx_std_20)
+
+add_executable(g1_dual_arm_example src/g1/lowlevel/g1_dual_arm_example.cpp src/common/motor_crc_hg.cpp)
+target_compile_features(g1_dual_arm_example PRIVATE cxx_std_20)
+
+add_executable(g1_audio_client_example src/g1/audio_client/g1_audio_client_example.cpp)
+target_compile_features(g1_audio_client_example PRIVATE cxx_std_20)
+
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
@@ -76,9 +89,17 @@ ament_target_dependencies(read_wireless_controller ${DEPENDENCY_LIST})
 ament_target_dependencies(go2_sport_client ${DEPENDENCY_LIST})
 ament_target_dependencies(go2_stand_example ${DEPENDENCY_LIST})
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")
-  ament_target_dependencies(go2_robot_state_client ${DEPENDENCY_LIST})
-endif()
+
+ament_target_dependencies(go2_robot_state_client ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_arm_sdk_dds_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_arm_action_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_dex3_example ${DEPENDENCY_LIST})
+target_include_directories(g1_dex3_example PRIVATE ${EIGEN3_INCLUDE_DIR})
+ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_ankle_swing_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_dual_arm_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
+
 
 install(TARGETS 
         low_level_ctrl
@@ -92,9 +113,16 @@ install(TARGETS
         go2_stand_example
         DESTINATION)
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")
-  install(TARGETS go2_robot_state_client)
-endif()
+
+install(TARGETS go2_robot_state_client)
+install(TARGETS g1_arm_sdk_dds_example)
+install(TARGETS g1_arm_action_example)
+install(TARGETS g1_dex3_example)
+install(TARGETS g1_loco_client_example)
+install(TARGETS g1_ankle_swing_example)
+install(TARGETS g1_dual_arm_example)
+install(TARGETS g1_audio_client_example)
+
 
 
 if(BUILD_TESTING)
