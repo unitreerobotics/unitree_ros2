@@ -1,8 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <cstdint>
-#include <memory>
+#include <mutex>
 #include <rclcpp/rclcpp.hpp>
 #include <thread>
 #include <unitree_hg/msg/low_cmd.hpp>
@@ -37,11 +36,14 @@ class ArmLowLevelController : public rclcpp::Node {
       G1Arm5JointIndex::WAIST_YAW,
       G1Arm5JointIndex::WAIST_ROLL,
       G1Arm5JointIndex::WAIST_PITCH};
+  std::array<float, NUM_ARM_JOINTS> target_pos_ = {
+      0.0F, PI_2,  0.0F, PI_2, 0.0F,  // left
+      0.0F, -PI_2, 0.0F, PI_2, 0.0F,  // right
+      0.0F, 0.0F,  0.0F};
 #elif ARM_TYPE == G1ARM7
   static constexpr int NUM_ARM_JOINTS = 17;
   static constexpr auto NOT_USED_JOINT = G1Arm7JointIndex::NOT_USED_JOINT;
   std::array<G1Arm7JointIndex, NUM_ARM_JOINTS> arm_joints_ = {
-      // Left arm
       G1Arm7JointIndex::LEFT_SHOULDER_PITCH,
       G1Arm7JointIndex::LEFT_SHOULDER_ROLL,
       G1Arm7JointIndex::LEFT_SHOULDER_YAW,
@@ -49,7 +51,6 @@ class ArmLowLevelController : public rclcpp::Node {
       G1Arm7JointIndex::LEFT_WRIST_ROLL,
       G1Arm7JointIndex::LEFT_WRIST_PITCH,
       G1Arm7JointIndex::LEFT_WRIST_YAW,
-      // Right arm
       G1Arm7JointIndex::RIGHT_SHOULDER_PITCH,
       G1Arm7JointIndex::RIGHT_SHOULDER_ROLL,
       G1Arm7JointIndex::RIGHT_SHOULDER_YAW,
@@ -57,134 +58,186 @@ class ArmLowLevelController : public rclcpp::Node {
       G1Arm7JointIndex::RIGHT_WRIST_ROLL,
       G1Arm7JointIndex::RIGHT_WRIST_PITCH,
       G1Arm7JointIndex::RIGHT_WRIST_YAW,
-      // Waist
       G1Arm7JointIndex::WAIST_YAW,
       G1Arm7JointIndex::WAIST_ROLL,
-      G1Arm7JointIndex::WAIST_PITCH,
-  };
+      G1Arm7JointIndex::WAIST_PITCH};
+  std::array<float, NUM_ARM_JOINTS> target_pos_ = {
+      0.0F, PI_2,  0.0F, PI_2, 0.0F, 0.0F, 0.0F,  // left
+      0.0F, -PI_2, 0.0F, PI_2, 0.0F, 0.0F, 0.0F,  // right
+      0.0F, 0.F,   0.F};
+
 #endif
+
  public:
   ArmLowLevelController() : Node("arm_lowlevel_controller") {
+    // ROS2接口初始化
     pub_ = this->create_publisher<LowCmd>("/arm_sdk", 10);
-    sub_ = this->create_subscription<unitree_hg::msg::LowState>(
+    sub_ = this->create_subscription<LowState>(
         "/lowstate", 10,
-        [this](std::shared_ptr<const unitree_hg::msg::LowState> msg) {
-          StateCallback(msg);
-        });
+        [this](const LowState::SharedPtr msg) { StateCallback(msg); });
 
-    using namespace std::chrono_literals;
     sleep_time_ =
-        std::chrono::milliseconds(static_cast<int>(control_dt_ / 0.001F));
+        std::chrono::milliseconds(static_cast<int>(control_dt_ * 1000));
 
-    init_pos_.fill(0.F);
-    target_pos_ = {0.F, PI_2, 0.F, PI_2, 0.F, 0.F, -PI_2,
-                   0.F, PI_2, 0.F, 0.F,  0.F, 0.F};
+    // 位置初始化
+    init_pos_.fill(0.0F);
 
-    // start
-    timer_ = std::thread([this] {
-      while (true) {
-        ControlLoop();
-        std::this_thread::sleep_for(200ms);
-      }
-    });
+    thread_ = std::thread([this]() { ControlLoop(); });
   }
 
  private:
   rclcpp::Publisher<LowCmd>::SharedPtr pub_;
   rclcpp::Subscription<LowState>::SharedPtr sub_;
-  std::thread timer_;
+  std::thread thread_;
+
   LowState last_state_;
+  std::mutex state_mutex_;
   bool state_received_ = false;
 
-  std::array<float, NUM_ARM_JOINTS> init_pos_{}, target_pos_{};
-  std::array<float, NUM_ARM_JOINTS> current_jpos_{}, current_jpos_des_{};
-
-  float weight_{0.0F}, control_dt_{0.02F};
-  float kp_ = 60.F, kd_ = 1.5F, dq_ = 0.F, tau_ff_ = 0.F;
+  float control_dt_{0.02F};
+  float kp_{60.0F}, kd_{1.5F};
+  float max_joint_velocity_{0.5F};
   std::chrono::milliseconds sleep_time_{};
 
-  void StateCallback(
-      const std::shared_ptr<const unitree_hg::msg::LowState> msg) {
-    last_state_ = *msg;
-    state_received_ = true;
-  }
+  std::array<float, NUM_ARM_JOINTS> init_pos_{};
 
-  void ControlLoop() {
-    if (!state_received_) {
-      RCLCPP_WARN(this->get_logger(), "Waiting for LowState...");
+  std::array<float, NUM_ARM_JOINTS> current_jpos_{};
+
+  void StateCallback(const LowState::SharedPtr msg) {
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    last_state_ = *msg;
+
+    if (state_received_) {
       return;
     }
-
-    // initialize current joint positions
-    for (uint64_t i = 0; i < arm_joints_.size(); ++i) {
+    for (size_t i = 0; i < arm_joints_.size(); ++i) {
       current_jpos_[i] =
           last_state_.motor_state[static_cast<int>(arm_joints_[i])].q;
     }
 
-    RCLCPP_INFO(this->get_logger(), "Initializing arms...");
-    MoveToPose(init_pos_, 2.0F);
+    state_received_ = true;
+  }
 
-    rclcpp::sleep_for(1s);
+  void ControlLoop() {
+    while (!state_received_) {
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                           "Waiting for LowState...");
+      std::this_thread::sleep_for(100ms);
+    }
+    RCLCPP_INFO(this->get_logger(), "LowState received. Starting control...");
+    StartControlSequence();
+  }
+
+  // start control sequence
+  void StartControlSequence() {
+    RCLCPP_INFO(this->get_logger(), "Starting control sequence...");
+    auto start_pos = current_jpos_;
+    // first stage: move to initial position
+    RCLCPP_INFO(this->get_logger(), "Moving to initial position...");
+    MoveTo(init_pos_, current_jpos_, 3.0F, true);
+
+    // second stage: lift arms
     RCLCPP_INFO(this->get_logger(), "Lifting arms...");
-    MoveToPose(target_pos_, 5.0F);
+    MoveTo(target_pos_, current_jpos_, 5.0F, false);
 
-    rclcpp::sleep_for(1s);
+    // third stage: put arms down
     RCLCPP_INFO(this->get_logger(), "Putting arms down...");
-    MoveToPose(init_pos_, 5.0F);
+    MoveTo(init_pos_, current_jpos_, 5.0F, false);
 
-    rclcpp::sleep_for(1s);
+    // third stage: put arms down
+    RCLCPP_INFO(this->get_logger(), "Putting arms down...");
+    MoveTo(start_pos, current_jpos_, 3.0F, false);
+
+    // final stage: stop control
     StopControl();
   }
 
-  void MoveToPose(const std::array<float, NUM_ARM_JOINTS> &target,
-                  float duration) {
-    int const steps = static_cast<int>(duration / control_dt_);
-    float const max_delta = 0.5F * control_dt_;  // max joint velocity * dt
+  // move to target position from current position
+  void MoveTo(const std::array<float, NUM_ARM_JOINTS>& target,
+              std::array<float, NUM_ARM_JOINTS>& current, float duration,
+              bool smooth) {
+    const int steps = static_cast<int>(duration / control_dt_);
+    const float max_delta = max_joint_velocity_ * control_dt_;
 
     for (int i = 0; i < steps; ++i) {
-      for (int j = 0; j < static_cast<int>(arm_joints_.size()); ++j) {
-        float const diff = target[j] - current_jpos_des_[j];
-        current_jpos_des_[j] += std::clamp(diff, -max_delta, max_delta);
+      float phase = static_cast<float>(i) / static_cast<float>(steps);
+
+      for (size_t j = 0; j < arm_joints_.size(); ++j) {
+        if (smooth) {
+          // smooth mode: linear interpolation
+          current[j] = current[j] * (1 - phase) + target[j] * phase;
+        } else {
+          // non-smooth mode: move with max velocity
+          float diff = target[j] - current[j];
+          current[j] += std::clamp(diff, -max_delta, max_delta);
+        }
       }
 
-      LowCmd cmd;
-      for (int j = 0; j < static_cast<int>(arm_joints_.size()); ++j) {
-        int const idx = static_cast<int>(arm_joints_[j]);
-        cmd.motor_cmd[idx].q = current_jpos_des_[j];
-        cmd.motor_cmd[idx].dq = dq_;
+      SendPositionCommand(current);
+      std::this_thread::sleep_for(sleep_time_);
+    }
+  }
+
+  void SendPositionCommand(const std::array<float, NUM_ARM_JOINTS>& positions) {
+    LowCmd cmd;
+
+    for (size_t i = 0; i < arm_joints_.size(); ++i) {
+      int idx = static_cast<int>(arm_joints_[i]);
+      cmd.motor_cmd[idx].q = positions[i];
+      cmd.motor_cmd[idx].dq = 0.0F;
+      cmd.motor_cmd[idx].tau = 0.0F;
+      if (i >= arm_joints_.size() - 3) {
+        cmd.motor_cmd[idx].kp = kp_ * 4.0F;
+        cmd.motor_cmd[idx].kd = kd_ * 4.0F;
+      } else {
         cmd.motor_cmd[idx].kp = kp_;
         cmd.motor_cmd[idx].kd = kd_;
-        cmd.motor_cmd[idx].tau = tau_ff_;
       }
-
-      cmd.motor_cmd[static_cast<int>(NOT_USED_JOINT)].q = 1.0F;
-
-      pub_->publish(cmd);
-      rclcpp::sleep_for(sleep_time_);
     }
+
+    cmd.motor_cmd[static_cast<int>(NOT_USED_JOINT)].q = 1.0F;
+
+    pub_->publish(cmd);
   }
 
   void StopControl() {
-    int const steps = static_cast<int>(2.0F / control_dt_);
-    float const delta_w = 0.2F * control_dt_;
+    RCLCPP_INFO(this->get_logger(), "Stopping control...");
+
+    const int steps = static_cast<int>(2.0F / control_dt_);
+    const float delta_w = 0.2F * control_dt_;
+    float weight = 1.0F;
 
     for (int i = 0; i < steps; ++i) {
-      weight_ -= delta_w;
-      weight_ = std::clamp(weight_, 0.F, 1.F);
+      weight -= delta_w;
+      weight = std::clamp(weight, 0.0F, 1.0F);
 
       LowCmd cmd;
-      cmd.motor_cmd[static_cast<int>(NOT_USED_JOINT)].q = weight_;
+
+      for (size_t j = 0; j < arm_joints_.size(); ++j) {
+        int idx = static_cast<int>(arm_joints_[j]);
+        cmd.motor_cmd[idx].q = current_jpos_[j];
+        cmd.motor_cmd[idx].dq = 0.0F;
+        cmd.motor_cmd[idx].kp = kp_;
+        cmd.motor_cmd[idx].kd = kd_;
+        cmd.motor_cmd[idx].tau = 0.0F;
+      }
+      cmd.motor_cmd[static_cast<int>(NOT_USED_JOINT)].q = weight;
       pub_->publish(cmd);
+
       rclcpp::sleep_for(sleep_time_);
     }
 
-    RCLCPP_INFO(this->get_logger(), "Arm control stopped.");
+    LowCmd cmd;
+    cmd.motor_cmd[static_cast<int>(NOT_USED_JOINT)].q = 0.0F;
+    pub_->publish(cmd);
+    RCLCPP_INFO(this->get_logger(), "Control stopped.");
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<ArmLowLevelController>());
+  auto node = std::make_shared<ArmLowLevelController>();
+  rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
 }

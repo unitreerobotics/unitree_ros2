@@ -60,7 +60,7 @@ class G1ArmActionClient {
     unitree_api::msg::Request req;
     req.header.identity.api_id = ROBOT_API_ID_ARM_ACTION_EXECUTE_ACTION;
     nlohmann::json js;
-    js["action_id"] = action_id;
+    js["data"] = action_id;
     req.parameter = js.dump();
     return base_client_.Call(req);
   }

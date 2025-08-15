@@ -6,14 +6,16 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
-
+#include "motor_crc_hg.h"
 // ROS2
 #include <rclcpp/rclcpp.hpp>
 #include <unitree_hg/msg/low_cmd.hpp>
 #include <unitree_hg/msg/low_state.hpp>
 
+#include "g1/g1_motion_switch_client.hpp"
 using namespace std::chrono_literals;
 
 const int G1_NUM_MOTOR = 29;
@@ -160,24 +162,90 @@ class G1Example : public rclcpp::Node {
   rclcpp::TimerBase::SharedPtr command_writer_timer_;
   rclcpp::TimerBase::SharedPtr control_timer_;
   std::string resource_dir_;
+  std::shared_ptr<unitree::robot::g1::MotionSwitchClient> client_;
+  std::thread thread_;
 
  public:
-  explicit G1Example(std::string  resource_dir)
+  explicit G1Example(std::string resource_dir)
       : Node("g1_example"), resource_dir_(std::move(resource_dir)) {
-    // Initialize publishers and subscribers
-    lowcmd_publisher_ =
-        this->create_publisher<unitree_hg::msg::LowCmd>("lowcmd", 10);
-    lowstate_subscriber_ = this->create_subscription<unitree_hg::msg::LowState>(
-        "lowstate", 10, [this](const unitree_hg::msg::LowState::SharedPtr msg) {
-          LowStateHandler(msg);
-        });
+    client_ = std::make_shared<unitree::robot::g1::MotionSwitchClient>(this);
 
-    // Initialize timers
-    command_writer_timer_ =
-        this->create_wall_timer(2ms, [this] { LowCommandWriter(); });
-    control_timer_ = this->create_wall_timer(2ms, [this] { Control(); });
+    thread_ = std::thread([this]() {
+      std::this_thread::sleep_for(1s);
+      while (queryMotionStatus() != 0) {
+        std::cout << "Try to deactivate the motion control-related service."
+                  << std::endl;
+        int32_t ret = client_->ReleaseMode();
+        if (ret == 0) {
+          std::cout << "ReleaseMode succeeded." << std::endl;
+        } else {
+          std::cout << "ReleaseMode failed. Error code: " << ret << std::endl;
+        }
+        std::this_thread::sleep_for(2s);
+      }
 
-    RCLCPP_INFO(this->get_logger(), "G1 Example Node Initialized");
+      // Initialize publishers and subscribers
+      lowcmd_publisher_ =
+          this->create_publisher<unitree_hg::msg::LowCmd>("lowcmd", 10);
+      lowstate_subscriber_ =
+          this->create_subscription<unitree_hg::msg::LowState>(
+              "lowstate", 10,
+              [this](const unitree_hg::msg::LowState::SharedPtr msg) {
+                LowStateHandler(msg);
+              });
+
+      // Initialize timers
+      command_writer_timer_ =
+          this->create_wall_timer(2ms, [this] { LowCommandWriter(); });
+      control_timer_ = this->create_wall_timer(2ms, [this] { Control(); });
+
+      RCLCPP_INFO(this->get_logger(), "G1 Example Node Initialized");
+    });
+  }
+
+  int queryMotionStatus() {
+    std::string robotForm;
+    std::string motionName;
+    int motionStatus = 0;
+    int32_t ret = client_->CheckMode(robotForm, motionName);
+    if (ret == 0) {
+      std::cout << "CheckMode succeeded." << std::endl;
+    } else {
+      std::cout << "CheckMode failed. Error code: " << ret << std::endl;
+    }
+    if (motionName.empty()) {
+      std::cout << "The motion control-related service is deactivated."
+                << std::endl;
+      motionStatus = 0;
+    } else {
+      std::string serviceName = queryServiceName(robotForm, motionName);
+      std::cout << "Service: " << serviceName << " is activate" << std::endl;
+      motionStatus = 1;
+    }
+    return motionStatus;
+  }
+
+  static std::string queryServiceName(const std::string &form,
+                                      const std::string &name) {
+    if (form == "0") {
+      if (name == "normal") {
+        return "sport_mode";
+      }
+      if (name == "ai") {
+        return "ai_sport";
+      }
+      if (name == "advanced") {
+        return "advanced_sport";
+      }
+    } else {
+      if (name == "ai-w") {
+        return "wheeled_sport(go2W)";
+      }
+      if (name == "normal-w") {
+        return "wheeled_sport(b2W)";
+      }
+    }
+    return "";
   }
 
   void loadBehaviorLibrary(const std::string &behavior_name) {
@@ -215,7 +283,8 @@ class G1Example : public rclcpp::Node {
 
   void LowStateHandler(const unitree_hg::msg::LowState::SharedPtr msg) {
     // if (msg->crc != Crc32Core((uint32_t *)msg.get(),  // NOLINT
-    //                           (sizeof(unitree_hg::msg::LowState) >> 2) - 1)) {
+    //                           (sizeof(unitree_hg::msg::LowState) >> 2) - 1))
+    //                           {
     //   RCLCPP_ERROR(this->get_logger(), "low_state CRC Error");
     //   return;
     // }
@@ -261,9 +330,8 @@ class G1Example : public rclcpp::Node {
         dds_low_command.motor_cmd[i].kp = mc->kp.at(i);
         dds_low_command.motor_cmd[i].kd = mc->kd.at(i);
       }
-
-      dds_low_command.crc = Crc32Core((uint32_t *)&dds_low_command,  // NOLINT
-                                      (sizeof(dds_low_command) >> 2) - 1);
+ 
+      get_crc(dds_low_command);
       lowcmd_publisher_->publish(dds_low_command);
     }
   }
@@ -323,7 +391,7 @@ int main(int argc, char const *argv[]) {
 
   if (argc < 2) {
     RCLCPP_FATAL(rclcpp::get_logger("main"),
-                 "Usage: %s <resource_directory> [behavior_name]", argv[0]);
+                 "Usage: %s <resource_directory> [behavior_name], for example: g1_dual_arm_example ./behavior_lib/ motion", argv[0]);
     return 1;
   }
 
