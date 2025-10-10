@@ -78,10 +78,10 @@ add_executable(g1_audio_client_example src/g1/audio_client/g1_audio_client_examp
 target_compile_features(g1_audio_client_example PRIVATE cxx_std_20)
 
 add_executable(b2w_sport_client src/b2w/b2w_sport_client.cpp src/common/ros2_b2_sport_client.cpp)
-target_link_libraries(b2w_sport_client )
+target_compile_features(b2w_sport_client PRIVATE cxx_std_20)
 
 add_executable(b2w_stand_example src/b2w/b2w_stand_example.cpp src/common/motor_crc.cpp)
-target_link_libraries(b2w_stand_example )
+target_compile_features(b2w_stand_example PRIVATE cxx_std_20)
 
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
