@@ -8,12 +8,12 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 # Change to the network interface in which the unitree robot is connected
-export CYCLONEDDS_URI="<CycloneDDS>
+export CYCLONEDDS_URI='<CycloneDDS>
     <Domain>
         <General>
             <Interfaces>
-                <NetworkInterface name="$IFACE_NAME" priority="default" multicast="default"/>
+                <NetworkInterface name="'$IFACE_NAME'" priority="'default'" multicast="'default'"/>
             </Interfaces>
         </General>
     </Domain>
-</CycloneDDS>"
+</CycloneDDS>'
