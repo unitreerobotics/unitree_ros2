@@ -77,6 +77,12 @@ target_compile_features(g1_dual_arm_example PRIVATE cxx_std_20)
 add_executable(g1_audio_client_example src/g1/audio_client/g1_audio_client_example.cpp)
 target_compile_features(g1_audio_client_example PRIVATE cxx_std_20)
 
+add_executable(b2w_sport_client src/b2w/b2w_sport_client.cpp src/common/ros2_b2_sport_client.cpp)
+target_compile_features(b2w_sport_client PRIVATE cxx_std_20)
+
+add_executable(b2w_stand_example src/b2w/b2w_stand_example.cpp src/common/motor_crc.cpp)
+target_compile_features(b2w_stand_example PRIVATE cxx_std_20)
+
 
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 ament_target_dependencies(low_level_ctrl_hg ${DEPENDENCY_LIST})
@@ -99,6 +105,9 @@ ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_ankle_swing_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_dual_arm_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
+
+ament_target_dependencies(b2w_sport_client ${DEPENDENCY_LIST})
+ament_target_dependencies(b2w_stand_example ${DEPENDENCY_LIST})
 
 
 install(TARGETS 
