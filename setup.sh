@@ -1,8 +1,8 @@
 #!/bin/bash
 echo "Setup unitree ros2 environment"
 
-# Get first en* interface name
-IFACE_NAME=$(ip -br l | awk '$1 ~ "en" NR==1 { print $1 }' | awk 'NR==1')
+# Grab first en* interface name by default
+IFACE_NAME=${1:-$(ip -br l | awk '$1 ~ "en" { print $1 }' | head -n 1)}
 
 source /opt/ros/$ROS_DISTRO/setup.bash
 source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
