@@ -5,12 +5,14 @@
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="unitree@unitree.com">Unitree</maintainer>
-<license>BSD 3-Clause License</license>
-  
+  <license>BSD 3-Clause License</license>
+
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
   <member_of_group>rosidl_interface_packages</member_of_group>
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>rosidl_generator_dds_idl</build_depend>
 
   <depend>geometry_msgs</depend>
 
