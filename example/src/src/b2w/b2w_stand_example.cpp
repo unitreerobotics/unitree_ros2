@@ -8,7 +8,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "unitree_go/msg/low_cmd.hpp"
 #include "unitree_go/msg/low_state.hpp"
-#include "g1/g1_motion_switch_client.hpp"
+#include "b2/b2_motion_switch_client.hpp"
 #include "motor_crc.h"
 
 #define TOPIC_LOWCMD "/lowcmd"
@@ -39,7 +39,7 @@ class Custom : public rclcpp::Node {
   int motiontime = 0;
   float dt_ = 0.002;  // 0.001~0.01
 
-  unitree::robot::g1::MotionSwitchClient msc_;
+  unitree::robot::b2::MotionSwitchClient msc_;
   unitree_go::msg::LowCmd low_cmd_;
   unitree_go::msg::LowState low_state_;
 
