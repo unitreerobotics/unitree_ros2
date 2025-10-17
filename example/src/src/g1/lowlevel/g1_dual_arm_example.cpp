@@ -118,7 +118,7 @@ inline uint32_t Crc32Core(const uint32_t *ptr, uint32_t len) {
     }
   }
   return CRC32;
-};
+}
 
 float GetMotorKp(MotorType type) {
   switch (type) {

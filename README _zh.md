@@ -37,6 +37,7 @@ git clone https://github.com/unitreerobotics/unitree_ros2
 ```bash
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
 sudo apt install ros-foxy-rosidl-generator-dds-idl
+sudo apt install libyaml-cpp-dev
 ```
 ### 2. 编译cyclone-dds(如果使用 Humble 可跳过此步骤)
 由于 Unitree 机器人(sdk2 版本) 使用的是cyclonedds 0.10.2，因此需要先更改ROS2的dds实现。见：https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html
