@@ -26,6 +26,7 @@ set (
   unitree_api
   rclcpp
   std_msgs
+  geometry_msgs
   rosbag2_cpp
 )
 
@@ -36,6 +37,7 @@ find_package(unitree_hg REQUIRED)
 find_package(unitree_api REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -74,6 +76,9 @@ target_compile_features(g1_ankle_swing_example PRIVATE cxx_std_20)
 add_executable(g1_audio_client_example src/g1/audio_client/g1_audio_client_example.cpp)
 target_compile_features(g1_audio_client_example PRIVATE cxx_std_20)
 
+add_executable(g1_twist_bridge src/g1/high_level/g1_twist_bridge.cpp)
+target_compile_features(g1_twist_bridge PRIVATE cxx_std_20)
+
 add_executable(b2w_sport_client src/b2w/b2w_sport_client.cpp src/common/ros2_b2_sport_client.cpp)
 target_compile_features(b2w_sport_client PRIVATE cxx_std_20)
 
@@ -108,6 +113,7 @@ ament_target_dependencies(g1_loco_client_example ${DEPENDENCY_LIST})
 ament_target_dependencies(g1_ankle_swing_example ${DEPENDENCY_LIST})
 
 ament_target_dependencies(g1_audio_client_example ${DEPENDENCY_LIST})
+ament_target_dependencies(g1_twist_bridge ${DEPENDENCY_LIST})
 
 ament_target_dependencies(b2w_sport_client ${DEPENDENCY_LIST})
 ament_target_dependencies(b2w_stand_example ${DEPENDENCY_LIST})
@@ -154,6 +160,7 @@ if(yaml-cpp_FOUND)
 endif()
 
 install(TARGETS g1_audio_client_example)
+install(TARGETS g1_twist_bridge)
 
 
 
