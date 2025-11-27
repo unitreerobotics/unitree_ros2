@@ -1,4 +1,4 @@
-# Unitree robot ROS2 support
+# Unitree ROS2 support
 
 [TOC]
 
@@ -6,14 +6,14 @@
 
 [Unitree SDK2](https://github.com/unitreerobotics/unitree_sdk2) implements an
 easy-to-use robot communication mechanism based on cyclonedds, which enable
-developers to achieve robot communication and control, supporting the Unitree
-Go2, B2, and H1 robots.
+developers to achieve robot communication and control. It supports the Unitree
+go2, go2w, B2, and H1 robots.
 
-[DDS](https://www.dds-foundation.org/what-is-dds-3) is also used in ROS2 as a
-communication background. Therefore, the underlying layers of Unitree Go2, B2,
-and H1 robots can be made compatible with ROS2. Thus, ROS2 messages can be
-directly used for communication and control of the Unitree robot without
-directly wrapping the Unitree SDK2.
+[DDS](https://www.dds-foundation.org/what-is-dds-3) is also used by ROS2 as a
+communication background. Therefore, the underlying layers of the Unitree go2,
+go2w, B2, and H1 robots can be made compatible with ROS2. Therefore, ROS2
+messages can be used for communication and control without directly wrapping
+the Unitree SDK2.
 
 ## System requirements
 
@@ -29,8 +29,8 @@ If you want to use the Docker container environment, you can refer to the
 `Dockerfile` related content in the `.devcontainer` folder. Another options is
 to use the Dev Container feature of VSCode or other IDEs to create a
 development environment, or use Github's codespace to quickly create one. If
-you do encounter compilation issues, you can refer to the compilation scripts
-in `.github/workflows/` or request assistance on the issues tab.
+you encounter problems while compiling, you can refer to the compilation
+scripts in `.github/workflows/` or request assistance on the issues tab.
 
 ## Installation
 
@@ -39,7 +39,7 @@ in `.github/workflows/` or request assistance on the issues tab.
 (If you need another version of ROS2, replace "foxy" with the current ROS2 
 version name in the corresponding places).
 
-Install ROS2 foxy following
+Install ROS2 foxy following the instructions on
 https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html.
 
 ### Installing the unitree_ros2 package
@@ -52,7 +52,7 @@ Once ROS2 is installed, open a terminal and clone the repository:
 git clone https://github.com/unitreerobotics/unitree_ros2
 ```
 
-The unitree_ros2 folder contains two ROS2 workspaces:
+containing the following ROS2 workspaces:
 
 - **cyclonedds_ws**: The workspace of Unitree ROS2 package. The msg for Unitree
   robot are supplied in the subfolder cyclonedds_ws/unitree/unitree_go and
@@ -68,6 +68,7 @@ sudo apt install libyaml-cpp-dev
 ```
 
 #### 3. Compile cyclonedds (If using humble+, this step can be skipped)
+
 The cyclonedds version installed on the Unitree robot's embedded computers is
 0.10.2. To communicate with a Unitree robot using ROS2, it is necessary to
 [change the default DDS
@@ -75,7 +76,7 @@ implementation](https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware
 
 Before compiling cyclonedds, please ensure that ros2 environment has **NOT**
 been sourced when starting the terminal. -- it may cause errors upon
-compilation -- if "source/opt/ros/foxy/setup.bash" has been added to the
+compilation -- if `source/opt/ros/foxy/setup.bash` has been added to the
 ~/.bashrc file when installing ROS2, it needs to be commented out:
 
 ```bash
@@ -95,44 +96,46 @@ git clone https://github.com/ros2/rmw_cyclonedds -b foxy
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
 cd ..
 
-# If the build process failed, try running 
-# `export LD_LIBRARY_PATH=/opt/ros/foxy/lib` first.
+# If the build process failed, try running `export LD_LIBRARY_PATH=/opt/ros/foxy/lib` first.
 colcon build --symlink-install --packages-select cyclonedds
 ```
 
 #### 4. Compile unitree_api, unitree_go and unitree_hg packages
+
 After compiling cyclonedds, a few ROS2 dependencies are required for compiling
-the unitree_api, unitree_go and unitree_hg packages on the `cyclonedds_ws' 
-workspace. Therefore, this time source the environment of ROS2 before compiling
-the packages:
+the `unitree_api`, `unitree_go` and `unitree_hg` packages on the
+`cyclonedds_ws` workspace. Thus, source the environment of ROS2 before
+compiling the packages:
 
 ```bash
-source /opt/ros/foxy/setup.bash # source ROS2 environment
+source /opt/ros/foxy/setup.bash
 colcon build --symlink-install --packages-select unitree_api unitree_go unitree_hg
 ```
 
 ## Unitree robot connection
 
 ### 1. Network configuration
+
 You need to setup a static network connection. Connect the Unitree 
-robot and the computer using an ethernet cable. Use `ifconfig' or `ip link' to 
+robot and the computer using an ethernet cable. Use `ifconfig` or `ip link` to 
 view check the network interface the robot is connected to.
 
 Then configure a static IPv4 connection on that interface - change the IPv4 mode 
 to manual and set the address and network mask accordingly to the robot model:
 
-| Unitree robot model | address/mask |
-|--|--|
-|go2   | 192.168.123.99/24 |
-|go2/w | 192.168.123.53/24 |
+| Unitree robot | address/mask      |
+| ------------- | ----------------- |
+| go2           | 192.168.123.99/24 |
+| go2w          | 192.168.123.53/24 |
 
-Finally, source the environments:
+Finally, setup the ROS2 environment:
+
 ```bash
 source /opt/ros/$ROS_DISTRO/setup.bash
 source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
 ```
 
-And export the `RWM_IMPLEMENTATION' and `CYCLONE_DDS_URI' environment variables:
+And export the `RWM_IMPLEMENTATION` and `CYCLONE_DDS_URI` environment variables:
 
 ```bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
@@ -143,19 +146,19 @@ export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
 
 substituting "enXXXX" with the configured ethernet network interface name.
 
-The `setup.sh' bash script will attempt to setup the ROS2 environment with the
-first en* interface found by `ip link' automatically:
+The `setup.sh' bash script will attempt to configure the first en* interface 
+found by `ip link' automatically:
 
 ```bash
 source ~/unitree_ros2/setup.sh          # use the first en* network interface found
 ```
 
 If you don't want to source the bash script every time when a new terminal
-opens, you can write the content of bash script into ~/.bashrc, but pay
+opens, you can write the content of bash script into `~/.bashrc`, but pay
 attention when there are multiple ROS environments coexisting on your system.
 
-If your computer is not connected to the robot but you still want to use these 
-packages on a simulated environment, you can use the local loopback "lo" as 
+If your computer is not connected to the robot but you still want to use the 
+packages on a simulated environment, you can use the local loopback `lo` as 
 the network interface:
 
 ```bash
@@ -181,30 +184,33 @@ ros2 topic list
 ```
 
 You can see the following topics:
-![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/5e45e8ec-9248-47eb-8380-798ed0ef468b.png)
+```
 
-Input ros2 topic echo /sportmodestate，you can see the data of the topic as shown in the following figure：
-![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/89214761-6cfb-4b52-bf24-7a5bd9a9806c.png)
+```
 
+Input `ros2 topic echo /sportmodestate`，you can see the topic data:
 
+```
+
+```
 ### 3. Examples
 
 The source code of examples locates at `/example_ws/src/src`.
 
-| common | Common functions for all robots |
-|--|--|
-
-- g1/lowlevel/g1_low_level_example: Low level control for G1
-- h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
-- low_level_ctrl: Low level control for Go2/B2
-- read_low_state: Read the low state from Go2/B2
-- read_low_state_hg: Read the low state from G1/H1/H1-2
-- read_motion_state: Read the sport mode state from Go2/B2
-- read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
-- record_bag: Ros bag recording example.
-- go2/go2_sport_client: High level control for Go2.
-- go2/go2_stand_example: Stand example for Go2.
-- go2/go2_robot_state_client：Robot State Example for Go2。
+| package/directory | description | robot model
+|--|--|--|
+| common                                 | Common functions                   | all              |
+| g1/lowlevel/g1_low_level_example       | Low level control                  | G1               |
+| h1-2/lowlevel/low_level_ctrl_hg        | Low level control                  | H1-2             |
+| low_level_ctrl                         | Low level control                  | go2/w and B2     |
+| read_low_state                         | Read the low state                 | go2/w and B2     |
+| read_low_state_hg                      | Read the low state                 | G1 and H1-2      |
+| read_motion_state                      | Read the sportsmode state          | go2/w and B2     |
+| read_wireless_controller               | Read the wireless controller state | G1, go2/w and B2 |
+| record_bag                             | ROS2 bag recording example         | -                |
+| go2/go2_sport_client                   | High level control                 | go2/w            |
+| go2/go2_stand_example                  | Robot stand example                | go2/w            |
+| go2/go2_robot_state_client             | Robot state example                | go2/w            |
 
 Open a terminal and input:
 
@@ -214,11 +220,12 @@ cd ~/unitree_ros2/example_ws
 colcon build --symlink-install
 ```
 
-After compilation, run in the terminal:
+to compile the examples. Then run:
 
 ```bash
 ./install/unitree_ros2_example/bin/read_motion_state 
 ```
+
 You should see the robot status information output on the terminal:
 
 ```bash
