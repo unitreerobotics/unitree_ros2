@@ -63,14 +63,14 @@ containing the following ROS2 workspaces:
 #### 2. Install dependencies
 
 ```bash
-sudo apt install build-dep ros-foxy-rmw-cyclonedds-cpp
+sudo apt install build-dep ros-foxy-cyclonedds
 sudo apt install ros-foxy-rosidl-generator-dds-idl libyaml-cpp-dev
 ```
 
-#### 3. Compile cyclonedds (If using humble+, this step can be skipped)
+#### 3. Compile cyclonedds
 
 (If using humble+, this step can be skipped - just install 
-`ros-$ROS_DISTRO-rwm-cyclonedds-cpp` with `apt`)
+`ros-$ROS_DISTRO-cyclonedds ros-$ROS_DISTRO-rmw-cyclonedds-cpp` with `apt`)
 
 The cyclonedds version installed on the Unitree robot's embedded computers is
 0.10.2. To communicate with a Unitree robot using ROS2, it is necessary to
@@ -103,19 +103,19 @@ cd ..
 colcon build --symlink-install --packages-select cyclonedds
 ```
 
-#### 4. Compile unitree_api, unitree_go and unitree_hg packages
+#### 4. Compile the unitree_ros2 packages
 
 After compiling cyclonedds, a few ROS2 dependencies are required for compiling
 the `unitree_api`, `unitree_go` and `unitree_hg` packages on the
-`cyclonedds_ws` workspace, therefore source the environment of ROS2 before
-compiling the packages:
+`cyclonedds_ws` workspace, so make sure to source the environment of ROS2
+before compiling the packages:
 
 ```bash
 source /opt/ros/foxy/setup.bash
 colcon build --symlink-install
 ```
 
-## Connection
+## Robot connection
 
 ### 1. Network configuration
 
