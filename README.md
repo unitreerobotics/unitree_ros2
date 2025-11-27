@@ -112,7 +112,7 @@ compiling the packages:
 
 ```bash
 source /opt/ros/foxy/setup.bash
-colcon build --symlink-install --packages-select unitree_api unitree_go unitree_hg
+colcon build --symlink-install
 ```
 
 ## Unitree robot connection
@@ -142,9 +142,16 @@ And export the `RWM_IMPLEMENTATION` and `CYCLONE_DDS_URI` environment variables:
 
 ```bash
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-                            <NetworkInterface name="enXXX" priority="default" multicast="default" />
-                        </Interfaces></General></Domain></CycloneDDS>'
+export CYCLONEDDS_URI='<CycloneDDS>
+    <Domain>
+        <General>
+            <AllowMulticast>spdp</AllowMulticast>
+            <Interfaces>
+                <NetworkInterface name="enXXXX" priority="default" multicast="default" />
+            </Interfaces>
+        </General>
+    </Domain>
+</CycloneDDS>'
 ```
 
 substituting "enXXXX" with the configured ethernet network interface name.
@@ -153,7 +160,7 @@ The `setup.sh' bash script will attempt to configure the first en* interface
 found by `ip link' automatically:
 
 ```bash
-source ~/unitree_ros2/setup.sh          # use the first en* network interface found
+source ~/unitree_ros2/setup.sh
 ```
 
 If you don't want to source the bash script every time when a new terminal
@@ -165,13 +172,13 @@ packages on a simulated environment, you can use the local loopback `lo` as
 the network interface:
 
 ```bash
-source ~/unitree_ros2/setup_local.sh    # use "lo" as the network interface
+source ~/unitree_ros2/setup_local.sh
 ```
 
-or
+or simply don't specify a network interface:
 
 ```bash
-source ~/unitree_ros2/setup_default.sh  # don't specify a network network interface
+source ~/unitree_ros2/setup_default.sh
 ```
 
 ### 2. Testing
@@ -298,7 +305,80 @@ api/assistant_recorder/request
 Input `ros2 topic echo /lowstate --once`，you can see the topic data:
 
 ```
-
+stamp:
+  sec: 0
+  nanosec: 0
+error_code: 0
+imu_state:
+  quaternion:
+  - 0.9934075474739075
+  - -0.0005416878848336637
+  - 0.004365340806543827
+  - 0.11455302685499191
+  gyroscope:
+  - -0.009587379172444344
+  - -0.004261057358235121
+  - -0.004261057358235121
+  accelerometer:
+  - -0.07541735470294952
+  - 0.038307227194309235
+  - 9.518148422241211
+  rpy:
+  - -7.611058390466496e-05
+  - 0.008797342889010906
+  - 0.22961203753948212
+  temperature: 79
+mode: 1
+progress: 0.0
+gait_type: 1
+foot_raise_height: 0.0
+position:
+- 0.0
+- 0.0
+- 0.0
+body_height: 0.0
+velocity:
+- 0.0
+- 0.0
+- 0.0
+yaw_speed: 0.0
+range_obstacle:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+foot_force:
+- 0
+- 0
+- 0
+- 0
+foot_position_body:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+foot_speed_body:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+---
 ```
 ### 3. Examples
 
@@ -351,191 +431,256 @@ You should see the robot status information output on the terminal:
 
 #### 1. Sportmode state
 
-Sportmode state includes position, velcity, foot position, and other motion states of the robot. The acquisition of sportmode state can be achieved by subscribing "lf/sportmodestate" or "sportmodestate" topic, where "lf" represents low frequency. The msg of sportmodestate is defined as：
+The sportmode state message includes position, velocity, foot position, and
+other motion state information. To access it, subscribe to the `/sportmodestate` 
+or the `/lf/sportmodestate` topic, where "lf" indicates low frequency.
+
+The .msg file is defined as:
 
 ```C++
-TimeSpec stamp // Time stamp
-uint32 error_code //Error code
-IMUState imu_state //IMU state
-uint8 mode //Sport mode
+TimeSpec        stamp       // time stamp
+uint32          error_code  // error code
+IMUState        imu_state   // imu state
+uint8           mode        // sportmode
 /*
-Sport mode
-0. idle, default stand
-1. balanceStand
-2. pose
-3. locomotion
-4. reserve
-5. lieDown
-6. jointLock
-7. damping
-8. recoveryStand
-9. reserve
+Sportmode
+0.  idle, default stand
+1.  balance stand
+2.  pose
+3.  locomotion
+4.  reserve
+5.  lie sown
+6.  joint lock
+7.  damping
+8.  recovery stand
+9.  reserve
 10. sit
-11. frontFlip
-12. frontJump
-13. frontPounc
+11. front flip
+12. front jump
+13. front pounce
 */
-float32 progress //Is the dance action being executed?：0. dance false; 1. dance true
-uint8 gait_type //Gait type
+float32         progress    // is a dance action being executed?：0. dance false; 1. dance true
+uint8           gait_type   // gait type
 /*
 Gait type
-0.idle  
-1.trot  
-2.run  
-3.climb stair  
-4.forwardDownStair   
-9.adjust
+0.  idle  
+1.  trot  
+2.  run  
+3.  climb up stairs  
+4.  climb down stairs  
+9.  adjust
 */
-float32 foot_raise_height 
-float32[3] position 
-float32 body_height
-float32[3] velocity 
-float32 yaw_speed
-float32[4] range_obstacle
-int16[4] foot_force 
-float32[12] foot_position_body //foot positions in body frame
-float32[12] foot_speed_body //foot velcities in body frame
+float32         foot_raise_height 
+float32[3]      position 
+float32         body_height
+float32[3]      velocity 
+float32         yaw_speed
+float32[4]      range_obstacle
+int16[4]        foot_force 
+float32[12]     foot_position_body  // foot positions in body frame
+float32[12]     foot_speed_body     // foot velocities in body frame
 ```
-For details, see：https://support.unitree.com/home/en/developer/sports_services.
 
-Complete examples is in /example/src/read_motion_state.cpp. Run in the terminal:
+For more details, see https://support.unitree.com/home/en/developer/sports_services
+
+To run a complete example:
+
 ```bash
-./install/unitree_ros2_example/bin/read_motion_state 
+./install/unitree_ros2_example/bin/read_motion_state
 ```
 
 ### 2. Low-level state
-The low-level state includes motors states, power information, and other low level states.  Low-level states can be obtained by subscribing "lf/lowstate" or "lowstate" topic. The lowstate msg is defined as:
+
+The low-level state message includes motors states, power information, and
+other low-level information. The low-level state can be obtained by
+subscribing to the `/lowstate` or the `/lf/lowstate` topic.
+
+The .msg file is defined as:
 
 ```C++
-uint8[2] head
-uint8 level_flag
-uint8 frame_reserve
-uint32[2] sn
-uint32[2] version
-uint16 bandwidth
-IMUState imu_state //IMU
-MotorState[20] motor_state //Motor state
-BmsState bms_state
-int16[4] foot_force 
-int16[4] foot_force_est
-uint32 tick
-uint8[40] wireless_remote
-uint8 bit_flag
-float32 adc_reel
-int8 temperature_ntc1
-int8 temperature_ntc2
-float32 power_v 
-float32 power_a 
-uint16[4] fan_frequency 
-uint32 reserve
-uint32 crc
+uint8[2]        head
+uint8           level_flag
+uint8           frame_reserve
+uint32[2]       sn
+uint32[2]       version
+uint16          bandwidth
+IMUState        imu_state           // imu state
+MotorState[20]  motor_state         // motor state
+BmsState        bms_state
+int16[4]        foot_force 
+int16[4]        foot_force_est
+uint32          tick
+uint8[40]       wireless_remote
+uint8           bit_flag
+float32         adc_reel
+int8            temperature_ntc1
+int8            temperature_ntc2
+float32         power_v 
+float32         power_a 
+uint16[4]       fan_frequency 
+uint32          reserve
+uint32          crc
 ```
-where MotorState are defined as：
+
+where the MotorState struct is defined as:
+
 ```C++
-uint8 mode        // Mode, 0x01 for control
-float32 q         // Joint angle
-float32 dq        // Joint velocity
-float32 ddq       // Joint acceleration
-float32 tau_est   // Estimated torque
-float32 q_raw     //raw data of q
-float32 dq_raw    //raw data of dq
-float32 ddq_raw   //raw data of dq
-int8 temperature 
-uint32 lost
-uint32[2] reserve
+uint8           mode                // mode, 0x01 for control
+float32         q                   // joint angle
+float32         dq                  // joint velocity
+float32         ddq                 // joint acceleration
+float32         tau_est             // estimated torque
+float32         q_raw               // raw data of q
+float32         dq_raw              // raw data of dq
+float32         ddq_raw             // raw data of dq
+int8            temperature 
+uint32          lost
+uint32[2]       reserve
 ```
-For details, see: https://support.unitree.com/home/en/developer/Basic_services
+
+For more details, see https://support.unitree.com/home/en/developer/Basic_services
+
+To run a complete example:
+
+```bash
+./install/unitree_ros2_example/bin/read_low_state
+```
+
 Complete examples is in example/src/read_low_state.cpp. 
 
 ### 3. Wireless controller
 
-Wireless controller state can be obtained by subscribing "/wirelesscontroller" topic. The  wirelesscontroller msg is defiened as:
+The wireless controller state can be obtained by subscribing to the 
+`/wirelesscontroller` topic. You can directly write a messsage to the topic to
+control the robot as if pressing the robot's own wireless controller.
+
+The .msg file is defiened as:
 
 ```C++
-float32 lx // left joystick x, range [-1.0~1.0]
-float32 ly // left joystick y, range [-1.0~1.0]
-float32 rx // right joystick x, range [-1.0~1.0]
-float32 ry // right joystick y, range [-1.0~1.0]
-uint16 keys // key values
+float32 lx      // left joystick x, range [-1.0 ~ 1.0]
+float32 ly      // left joystick y, range [-1.0 ~ 1.0]
+float32 rx      // right joystick x, range [-1.0 ~ 1.0]
+float32 ry      // right joystick y, range [-1.0 ~ 1.0]
+uint16  keys    // pressed keys
 ```
-For details, see: https://support.unitree.com/home/en/developer/Get_remote_control_status
 
-Complete examples is in example/src/read_wireless_controller.cpp.
+For more details, see https://support.unitree.com/home/en/developer/Get_remote_control_status
 
+To run a complete example:
+
+```bash
+./install/unitree_ros2_example/bin/read_wireless_controller
+```
 
 ## Robot control
-### 1. Sportmode 
-Sportmode control is implemented by request/response mechanism. Sportmode control  can be achieved by sending unitree_api::msg::Request msg to the "/api/sport/request" topic.
 
-The Request msg for different sportmode interfaces can be obtained by the SportClient (/example/src/common/ros2_sport_client.cpp) class. For example, control the robot to reach a desired attitude: 
+### 1. Sportmode 
+
+Sportmode control can be achieved by sending a `unitree_api::msg::Request`
+message to the `/api/sport/request` topic.
+
+The Request message can be generated by the SportClient class in 
+`/example/src/common/ros2_sport_client.cpp`. For example:
+
 ```C++
- //Create a ros2 pubilsher 
+// Create a ros2 publisher
 rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber = this->create_publisher<unitree_api::msg::Request>("/api/sport/request", 10);
 
-SportClient sport_req; //Sportclient
-unitree_api::msg::Request req; //Sportmode request msg
-sport_req.Euler(req,roll,pitch,yaw); //Get Sportmode request msg from Sportclient 
+SportClient sport_req;                  // Sportclient object
+unitree_api::msg::Request req;          // Sportmode request msg
+sport_req.Euler(req, r, p, y);          // Sportmode request msg from Sportclient
 
-req_puber->publish(req); // Publish request msg
+req_puber->publish(req);                // Publish request msg
 ```
-For details about SportClient：https://support.unitree.com/home/en/developer/sports_services
 
-Complete examples is in：example/src/sport_mode_ctrl.cpp. Run ./install/unitree_ros2_example/bin/sport_mode_ctrl in terminal. After 1 second of program startup, the robot will walk back and forth in the x direction.
+For details on SportClient, see https://support.unitree.com/home/en/developer/sports_services
 
+To run a complete example:
+
+```bash
+./install/unitree_ros2_example/bin/sport_mode_ctrl
+```
+
+Ater 1 second, the robot will walk back and forth in the x direction.
 
 ### 2. Motor control
-The torque, position and velocity control of motor can be implemented by subscribing "/lowcmd" topic and sending unitree_go::msg::LowCmd msg. LowCmd msg is defined as:
-```C++
-uint8[2] head
-uint8 level_flag
-uint8 frame_reserve
-uint32[2] sn
-uint32[2] version
-uint16 bandwidth
-MotorCmd[20] motor_cmd //motor command
-BmsCmd bms_cmd
-uint8[40] wireless_remote
-uint8[12] led
-uint8[2] fan
-uint8 gpio
-uint32 reserve
-uint32 crc
-```
-where motor_cmd is defined as:
-```C++
-uint8 mode;  //Mode（Foc mode -> 0x01 ，stop mode -> 0x00)
-float q;     //Target position (rad)
-float dq;    //Target velocity (rad/s)
-float tau;   //Target torque (N.M)
-float kp;    
-float kd;    
-unsigned long reserve[3]; 
-```
-For details about low_cmd：https://support.unitree.com/home/en/developer/Basic_services
 
-Complete examples is in：example/src/low_level_ctrl.cpo. Run ./install/unitree_ros2_example/bin/sport_mode_ctrl in terminal. The hip motor and calf motor of the RL leg will rotate to the corresponding joint angle.
+The torque, position and velocity control of each motor can be controlled by
+subscribing "/lowcmd" topic and sending `unitree_go::msg::LowCmd` messages. 
+
+The .msg file is defined as:
+
+```C++
+uint8[2]        head
+uint8           level_flag
+uint8           frame_reserve
+uint32[2]       sn
+uint32[2]       version
+uint16          bandwidth
+MotorCmd[20]    motor_cmd           // motor command
+BmsCmd          bms_cmd
+uint8[40]       wireless_remote
+uint8[12]       led
+uint8[2]        fan
+uint8           gpio
+uint32          reserve
+uint32          crc
+```
+
+where the MotorCmd struct is defined as:
+
+```C++
+uint8 mode;     // mode (foc mode -> 0x01，stop mode -> 0x00)
+float q;        // target position (rad)
+float dq;       // target velocity (rad/s)
+float tau;      // target torque (N.M)
+float kp;       // motor's PD controller's kp 
+float kd;       // motor's PD controller's kd
+unsigned long   reserve[3]; 
+```
+
+For more details, see https://support.unitree.com/home/en/developer/Basic_services
+
+To run a complete example:
+
+```bash
+./install/unitree_ros2_example/bin/sport_mode_ctrl
+```
+
+The hip and calf motors of the RL leg will rotate to the corresponding joint
+angle.
 
 ## Rviz
-We can also use rviz to visualize Unitree robot data.The following is an example of visualizing robot lidar data:
 
-Firstly, list all topics：
+We can also use rviz to visualize the Unitree robot data.
+
+First, list all topics with
+
 ```bash
 ros2 topic list
 ```
 
-We can find the topic of lida：
+so we can verify that the integrated lidar point cloud information is published
+on the
+
 ```bash
 utlidar/cloud
 ```
-Then, echo frame_id of lidar：
+
+topic. Then, print its `frame_id`
+
 ```
 ros2 topic echo --no-arr /utlidar/cloud
 ```
-where frame_id: utlidar_lidar
+
+and you should get `utlidar_lidar`.
 
 Finally, run rviz：
+
 ```
 ros2 run rviz2 rviz2
 ```
-Add Pointcloud topic: utlidar/cloud in rviz2 and modify Fixed frame to utlidar_lidar. Then, the lidar data is displayed in rviz2. 
+
+and add the `/utlidar/cloud` in rviz2 and modify the `Fixed frame` to
+`utlidar_lidar`.
 
