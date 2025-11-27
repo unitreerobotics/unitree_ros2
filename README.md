@@ -25,12 +25,12 @@ Tested systems and ROS2 distros:
 |Ubuntu 22.04|humble (recommended)|
 |Ubuntu 24.04|jazzy|
 
-If you want to directly use the Docker development environment, you can refer
-to the `Dockerfile` related content in the `.devcontainer` folder. Another
-options is to use the `Dev Container feature of VSCode` or other IDEs to create
-a development environment, or use Github's codespace to quickly create one.
-If you do encounter compilation issues, you can refer to the compilation
-scripts in `.github/workflows/` or request assistance on the issues tab.
+If you want to use the Docker container environment, you can refer to the
+`Dockerfile` related content in the `.devcontainer` folder. Another options is
+to use the Dev Container feature of VSCode or other IDEs to create a
+development environment, or use Github's codespace to quickly create one. If
+you do encounter compilation issues, you can refer to the compilation scripts
+in `.github/workflows/` or request assistance on the issues tab.
 
 ## Installation
 
