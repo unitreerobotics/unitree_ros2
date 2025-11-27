@@ -11,9 +11,10 @@ go2, go2w, B2, and H1 robots.
 
 [DDS](https://www.dds-foundation.org/what-is-dds-3) is also used by ROS2 as a
 communication background. Therefore, the underlying layers of the Unitree go2,
-go2w, B2, and H1 robots can be made compatible with ROS2. Therefore, ROS2
-messages can be used for communication and control without directly wrapping
-the Unitree SDK2.
+go2w, B2, and H1 robots can be made compatible and ROS2 messages can be used
+for communication and control without directly wrapping the Unitree SDK2.
+
+This repository implements a compatibility layer for that purpose.
 
 ## System requirements
 
@@ -183,7 +184,8 @@ source ~/unitree_ros2/setup.sh
 ros2 topic list
 ```
 
-You can see the following topics:
+You should see the following topics:
+
 ```
 
 ```
@@ -205,9 +207,9 @@ The source code of examples locates at `/example_ws/src/src`.
 | low_level_ctrl                         | Low level control                  | go2/w and B2     |
 | read_low_state                         | Read the low state                 | go2/w and B2     |
 | read_low_state_hg                      | Read the low state                 | G1 and H1-2      |
-| read_motion_state                      | Read the sportsmode state          | go2/w and B2     |
+| read_motion_state                      | Read the motion state              | go2/w and B2     |
 | read_wireless_controller               | Read the wireless controller state | G1, go2/w and B2 |
-| record_bag                             | ROS2 bag recording example         | -                |
+| record_bag                             | ros2 bag recording example         | all              |
 | go2/go2_sport_client                   | High level control                 | go2/w            |
 | go2/go2_stand_example                  | Robot stand example                | go2/w            |
 | go2/go2_robot_state_client             | Robot state example                | go2/w            |
