@@ -7,14 +7,14 @@
 [Unitree SDK2](https://github.com/unitreerobotics/unitree_sdk2) implements an
 easy-to-use robot communication mechanism based on cyclonedds, which enable
 developers to achieve robot communication and control. It supports the Unitree
-go2, go2w, B2, and H1 robots.
+go2/w, B2, and H1 robots.
 
 [DDS](https://www.dds-foundation.org/what-is-dds-3) is also used by ROS2 as a
-communication background. Therefore, the underlying layers of the Unitree go2,
-go2w, B2, and H1 robots can be made compatible and ROS2 messages can be used
+communication background. Therefore, the underlying layers of the Unitree
+go2/w, B2, and H1 robots can be made compatible and ROS2 messages can be used
 for communication and control without directly wrapping the Unitree SDK2.
 
-This repository implements a compatibility layer for that purpose.
+This repository implements a compatibility layer for such purpose.
 
 ## System requirements
 
@@ -30,8 +30,8 @@ If you want to use the Docker container environment, you can refer to the
 `Dockerfile` related content in the `.devcontainer` folder. Another options is
 to use the Dev Container feature of VSCode or other IDEs to create a
 development environment, or use Github's codespace to quickly create one. If
-you encounter problems while compiling, you can refer to the compilation
-scripts in `.github/workflows/` or request assistance on the issues tab.
+you encounter problems while compiling, refer to the compilation scripts in 
+`.github/workflows` for guidance.
 
 ## Installation
 
@@ -63,12 +63,14 @@ containing the following ROS2 workspaces:
 #### 2. Install dependencies
 
 ```bash
-sudo apt install ros-foxy-rmw-cyclonedds-cpp
-sudo apt install ros-foxy-rosidl-generator-dds-idl
-sudo apt install libyaml-cpp-dev
+sudo apt install build-dep ros-foxy-rmw-cyclonedds-cpp
+sudo apt install ros-foxy-rosidl-generator-dds-idl libyaml-cpp-dev
 ```
 
 #### 3. Compile cyclonedds (If using humble+, this step can be skipped)
+
+(If using humble+, this step can be skipped - just install 
+`ros-$ROS_DISTRO-rwm-cyclonedds-cpp` with `apt`)
 
 The cyclonedds version installed on the Unitree robot's embedded computers is
 0.10.2. To communicate with a Unitree robot using ROS2, it is necessary to
@@ -105,7 +107,7 @@ colcon build --symlink-install --packages-select cyclonedds
 
 After compiling cyclonedds, a few ROS2 dependencies are required for compiling
 the `unitree_api`, `unitree_go` and `unitree_hg` packages on the
-`cyclonedds_ws` workspace. Thus, source the environment of ROS2 before
+`cyclonedds_ws` workspace, therefore source the environment of ROS2 before
 compiling the packages:
 
 ```bash
@@ -127,7 +129,7 @@ to manual and set the address and network mask accordingly to the robot model:
 | Unitree robot | address/mask      |
 | ------------- | ----------------- |
 | go2           | 192.168.123.99/24 |
-| go2w          | 192.168.123.53/24 |
+| go2w          | 192.168.123.51/24 |
 
 Finally, setup the ROS2 environment:
 
@@ -187,10 +189,113 @@ ros2 topic list
 You should see the following topics:
 
 ```
-
+api/assistant_recorder/request
+/api/assistant_recorder/response
+/api/audiohub/request
+/api/audiohub/response
+/api/bashrunner/request
+/api/bashrunner/response
+/api/config/request
+/api/config/response
+/api/fourg_agent/request
+/api/fourg_agent/response
+/api/gas_sensor/request
+/api/gas_sensor/response
+/api/gpt/request
+/api/gpt/response
+/api/motion_switcher/request
+/api/motion_switcher/response
+/api/obstacles_avoid/request
+/api/obstacles_avoid/response
+/api/pet/request
+/api/pet/response
+/api/programming_actuator/request
+/api/programming_actuator/response
+/api/robot_state/request
+/api/robot_state/response
+/api/sport/request
+/api/sport/response
+/api/sport_lease/request
+/api/sport_lease/response
+/api/uwbswitch/request
+/api/uwbswitch/response
+/api/videohub/request
+/api/videohub/response
+/api/vui/request
+/api/vui/response
+/arm_Command
+/arm_Feedback
+/audiohub/player/state
+/audioreceiver
+/audiosender
+/config_change_status
+/frontvideostream
+/gas_sensor
+/gnss
+/gpt_cmd
+/gptflowfeedback
+/lf/lowstate
+/lf/sportmodestate
+/lio_sam_ros2/mapping/odometry
+/lowcmd
+/lowstate
+/multiplestate
+/parameter_events
+/pctoimage_local
+/pet/flowfeedback
+/programming_actuator/command
+/programming_actuator/feedback
+/public_network_status
+/qt_add_edge
+/qt_add_node
+/qt_command
+/qt_notice
+/query_result_edge
+/query_result_node
+/rosout
+/rtc/state
+/rtc_status
+/selftest
+/servicestate
+/servicestateactivate
+/sportmodestate
+/uslam/client_command
+/uslam/frontend/cloud_world_ds
+/uslam/frontend/odom
+/uslam/localization/cloud_world
+/uslam/localization/odom
+/uslam/navigation/global_path
+/uslam/server_log
+/utlidar/client_cmd
+/utlidar/cloud
+/utlidar/cloud_base
+/utlidar/cloud_deskewed
+/utlidar/grid_map
+/utlidar/height_map
+/utlidar/height_map_array
+/utlidar/imu
+/utlidar/lidar_state
+/utlidar/mapping_cmd
+/utlidar/range_info
+/utlidar/range_map
+/utlidar/robot_odom
+/utlidar/robot_pose
+/utlidar/server_log
+/utlidar/switch
+/utlidar/voxel_map
+/utlidar/voxel_map_compressed
+/uwbstate
+/uwbswitch
+/videohub/inner
+/webrtcreq
+/webrtcres
+/wirelesscontroller
+/wirelesscontroller_unprocessed
+/xfk_webrtcreq
+/xfk_webrtcres
 ```
 
-Input `ros2 topic echo /sportmodestate`，you can see the topic data:
+Input `ros2 topic echo /lowstate --once`，you can see the topic data:
 
 ```
 
@@ -210,7 +315,7 @@ The source code of examples locates at `/example_ws/src/src`.
 | read_motion_state                      | Read the motion state              | go2/w and B2     |
 | read_wireless_controller               | Read the wireless controller state | G1, go2/w and B2 |
 | record_bag                             | ros2 bag recording example         | all              |
-| go2/go2_sport_client                   | High level control                 | go2/w            |
+| go2/go2_sport_client                   | High level sportmode control       | go2/w            |
 | go2/go2_stand_example                  | Robot stand example                | go2/w            |
 | go2/go2_robot_state_client             | Robot state example                | go2/w            |
 
@@ -240,9 +345,12 @@ You should see the robot status information output on the terminal:
 [INFO] [1697525196.316189064] [motion_state_suber]: Gait state -- gait type: 1; raise height: 0.090000
 ```
 
-# Usage
-## State acquisition
-### 1. Sportmode state
+## Usage
+
+### State acquisition
+
+#### 1. Sportmode state
+
 Sportmode state includes position, velcity, foot position, and other motion states of the robot. The acquisition of sportmode state can be achieved by subscribing "lf/sportmodestate" or "sportmodestate" topic, where "lf" represents low frequency. The msg of sportmodestate is defined as：
 
 ```C++
@@ -414,7 +522,6 @@ Firstly, list all topics：
 ```bash
 ros2 topic list
 ```
-![image](docs/image/piFtteJ.png)
 
 We can find the topic of lida：
 ```bash
@@ -425,15 +532,10 @@ Then, echo frame_id of lidar：
 ros2 topic echo --no-arr /utlidar/cloud
 ```
 where frame_id: utlidar_lidar
-![image](docs/image/piFtdF1.png)
 
 Finally, run rviz：
 ```
 ros2 run rviz2 rviz2
 ```
 Add Pointcloud topic: utlidar/cloud in rviz2 and modify Fixed frame to utlidar_lidar. Then, the lidar data is displayed in rviz2. 
-
-
-![image](docs/image/piFtsyD.png)
-![image](docs/image/piFtyOe.png)
 

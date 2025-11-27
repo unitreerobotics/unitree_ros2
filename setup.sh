@@ -14,6 +14,9 @@ export CYCLONEDDS_URI='<CycloneDDS>
             <Interfaces>
                 <NetworkInterface name="'$IFACE_NAME'" priority="'default'" multicast="'default'"/>
             </Interfaces>
+            <AllowMulticast>
+                spdp
+            </AllowMulticast>
         </General>
     </Domain>
 </CycloneDDS>'
