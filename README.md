@@ -4,19 +4,19 @@
 
 ## Introduction
 
-Unitree SDK2 implements an easy-to-use robot communication mechanism based on
-cyclonedds, which enable developers to achieve robot communication and control,
-supporting the **Unitree Go2**, **B2**, and **H1** models -- see
-https://github.com/unitreerobotics/unitree_sdk2
+[Unitree SDK2](https://github.com/unitreerobotics/unitree_sdk2) implements an
+easy-to-use robot communication mechanism based on cyclonedds, which enable
+developers to achieve robot communication and control, supporting the Unitree
+Go2, B2, and H1 robots.
 
-DDS is alos used in ROS2 as a communication mechanism. Therefore, the
-underlying layers of Unitree Go2, B2, and H1 robots can be made compatible with
-ROS2. ROS2 msg can be direct used for communication and control of the Unitree
-robot without wrapping the SDK interface.
+[DDS](https://www.dds-foundation.org/what-is-dds-3) is also used in ROS2 as a
+communication background. Therefore, the underlying layers of Unitree Go2, B2,
+and H1 robots can be made compatible with ROS2. Thus, ROS2 messages can be
+directly used for communication and control of the Unitree robot without
+directly wrapping the Unitree SDK2.
 
-## Configuration
+## System requirements
 
-### System requirements
 Tested systems and ROS2 distros:
 
 | systems | ROS2 distro |
@@ -25,37 +25,41 @@ Tested systems and ROS2 distros:
 |Ubuntu 22.04|humble (recommended)|
 |Ubuntu 24.04|jazzy|
 
-If you want to directly use the `Docker development environment`, you can refer
+If you want to directly use the Docker development environment, you can refer
 to the `Dockerfile` related content in the `.devcontainer` folder. Another
 options is to use the `Dev Container feature of VSCode` or other IDEs to create
-a development environment, or use `Github's codespace` to quickly create one.
+a development environment, or use Github's codespace to quickly create one.
 If you do encounter compilation issues, you can refer to the compilation
-scripts in `.github/workflows/` or request assistance on the `issues` tab.
+scripts in `.github/workflows/` or request assistance on the issues tab.
 
-### Installing Unitree robot ROS2 support
+## Installation
+
+### Installing ROS2 foxy
 
 (If you need another version of ROS2, replace "foxy" with the current ROS2 
 version name in the corresponding places).
 
-The ROS2 foxy installation procedure can be found on 
+Install ROS2 foxy following
 https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html.
 
-Once installed, open a terminal and clone the repository:
+### Installing the unitree_ros2 package
+
+#### 1. Clone the repository
+
+Once ROS2 is installed, open a terminal and clone the repository:
 
 ```bash
 git clone https://github.com/unitreerobotics/unitree_ros2
 ```
 
-where:
+The unitree_ros2 folder contains two ROS2 workspaces:
 
 - **cyclonedds_ws**: The workspace of Unitree ROS2 package. The msg for Unitree
   robot are supplied in the subfolder cyclonedds_ws/unitree/unitree_go and
   cyclonedds_ ws/unitree/unitree_api.
 - **example_ws**: The workspace of a few examples.
 
-### Installing the unitree_ros2 package
-
-#### 1. Install dependencies
+#### 2. Install dependencies
 
 ```bash
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
@@ -63,15 +67,15 @@ sudo apt install ros-foxy-rosidl-generator-dds-idl
 sudo apt install libyaml-cpp-dev
 ```
 
-#### 2. Compile cyclonedds (If using humble+, this step can be skipped)
-The cyclonedds version of Unitree robot is 0.10.2. To communicate with a
-Unitree robot using ROS2, it is necessary to change the default dds
-implementation. See 
-https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html
+#### 3. Compile cyclonedds (If using humble+, this step can be skipped)
+The cyclonedds version installed on the Unitree robot's embedded computers is
+0.10.2. To communicate with a Unitree robot using ROS2, it is necessary to
+[change the default DDS
+implementation](https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html)
 
 Before compiling cyclonedds, please ensure that ros2 environment has **NOT**
-been sourced when starting the terminal. Otherwise, it may cause errors in
-compilation -- if "source/opt/ros/foxy/setup.bash" has been added to the 
+been sourced when starting the terminal. -- it may cause errors upon
+compilation -- if "source/opt/ros/foxy/setup.bash" has been added to the
 ~/.bashrc file when installing ROS2, it needs to be commented out:
 
 ```bash
@@ -96,7 +100,7 @@ cd ..
 colcon build --symlink-install --packages-select cyclonedds
 ```
 
-#### 3. Compile unitree_go and unitree_api packages
+#### 4. Compile unitree_api, unitree_go and unitree_hg packages
 After compiling cyclonedds, a few ROS2 dependencies are required for compiling
 the unitree_api, unitree_go and unitree_hg packages on the `cyclonedds_ws' 
 workspace. Therefore, this time source the environment of ROS2 before compiling
@@ -107,9 +111,9 @@ source /opt/ros/foxy/setup.bash # source ROS2 environment
 colcon build --symlink-install --packages-select unitree_api unitree_go unitree_hg
 ```
 
-### Connect the Unitree robot
+## Unitree robot connection
 
-#### 1. Network configuration
+### 1. Network configuration
 You need to setup a static network connection. Connect the Unitree 
 robot and the computer using an ethernet cable. Use `ifconfig' or `ip link' to 
 view check the network interface the robot is connected to.
@@ -164,7 +168,8 @@ or
 source ~/unitree_ros2/setup_default.sh  # don't specify a network network interface
 ```
 
-#### 2. Connect and test
+### 2. Testing
+
 After completing the above configuration, it is recommended to restart the 
 computer before conducting the test.
 
@@ -182,11 +187,12 @@ Input ros2 topic echo /sportmodestate，you can see the data of the topic as 
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/89214761-6cfb-4b52-bf24-7a5bd9a9806c.png)
 
 
-#### 3. Example list
+### 3. Examples
 
 The source code of examples locates at `/example_ws/src/src`.
 
-|common|Common functions for all robots|
+| common | Common functions for all robots |
+|--|--|
 
 - g1/lowlevel/g1_low_level_example: Low level control for G1
 - h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
