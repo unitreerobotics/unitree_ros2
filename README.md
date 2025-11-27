@@ -198,9 +198,9 @@ to verify topic messages being published.
 
 ### 3. Examples
 
-The source code of examples locates at `/example_ws/src/src`.
+The source code of the supplied examples can be found on `/example_ws/src/src`:
 
-| package/directory | description | robot model
+| subdirectory | description | supported robots
 |--|--|--|
 | common                                 | Common functions                   | all              |
 | g1/lowlevel/g1_low_level_example       | Low level control                  | G1               |
