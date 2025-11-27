@@ -41,6 +41,7 @@ where:
 ```bash
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
 sudo apt install ros-foxy-rosidl-generator-dds-idl
+sudo apt install libyaml-cpp-dev
 ```
 
 ### 2. Compile cyclone dds (If using Humble, this step can be skipped)

@@ -31,12 +31,12 @@ class Custom : public rclcpp::Node {
   int queryMotionStatus();
   std::string queryServiceName(std::string form, std::string name);
 
-  float Kp = 1000.0;
-  float Kd = 10.0;
-  double time_consume = 0;
-  int rate_count = 0;
-  int sin_count = 0;
-  int motiontime = 0;
+  float kp_ = 1000.0;
+  float kd_ = 10.0;
+  double time_consume_ = 0;
+  int rate_count_ = 0;
+  int sin_count_ = 0;
+  int motiontime_ = 0;
   float dt_ = 0.002;  // 0.001~0.01
 
   unitree::robot::b2::MotionSwitchClient msc_;
@@ -47,27 +47,32 @@ class Custom : public rclcpp::Node {
   rclcpp::Subscription<unitree_go::msg::LowState>::SharedPtr lowstate_subscriber;
   rclcpp::TimerBase::SharedPtr lowCmdWriteThreadPtr;
 
-  float _targetPos_1[12] = {0.0, 1.36, -2.65, 0.0, 1.36, -2.65,
-                            -0.2, 1.36, -2.65, 0.2, 1.36, -2.65};
+  float target_pos_1_[12] = {0.0, 1.36, -2.65, 0.0, 1.36, -2.65,
+                              0.2, 1.36, -2.65, 0.2, 1.36, -2.65};
 
-  float _targetPos_2[12] = {0.0, 0.67, -1.3, 0.0, 0.67, -1.3,
-                            0.0, 0.67, -1.3, 0.0, 0.67, -1.3};
+  float target_pos_2_[12] = {0.0, 0.67, -1.3, 0.0, 0.67, -1.3,
+                              0.0, 0.67, -1.3, 0.0, 0.67, -1.3};
 
-  float _targetPos_3[12] = {-0.65, 1.36, -2.65, 0.65, 1.36, -2.65,
-                            -0.65, 1.36, -2.65, 0.65, 1.36, -2.65};
+  float target_pos_3_[12] = {0.0, 1.36, -2.65, 0.0, 1.36, -2.65,
+                              0.0, 1.36, -2.65, 0.0, 1.36, -2.65};
 
-  float _startPos[12];
-  float _duration_1 = 800;
-  float _duration_2 = 800;
-  float _duration_3 = 2000;
-  float _duration_4 = 1500;
-  float _percent_1 = 0;
-  float _percent_2 = 0;
-  float _percent_3 = 0;
-  float _percent_4 = 0;
+  float target_pos_4_[12] = {-0.5, 1.36, -2.65, 0.5, 1.36, -2.65,
+                              -0.5, 1.36, -2.65, 0.5, 1.36, -2.65};
 
-  bool firstRun = true;
-  bool done = false;
+  float start_pos_[12]{};
+  float duration_1_ = 500;
+  float duration_2_ = 900;
+  float duration_3_ = 1000;
+  float duration_4_ = 1100;
+  float duration_5_ = 500;
+  float percent_1_ = 0;
+  float percent_2_ = 0;
+  float percent_3_ = 0;
+  float percent_4_ = 0;
+  float percent_5_ = 0;
+
+  bool first_run_ = true;
+  bool done_ = false;
 };
 
 void Custom::Init() {
@@ -78,6 +83,17 @@ void Custom::Init() {
       "/lowstate", 10, [this](const unitree_go::msg::LowState::SharedPtr msg) {
         LowStateMessageHandler(msg);
       });
+  
+  while(queryMotionStatus()) {
+      std::cout << "Try to deactivate the motion control-related service." << std::endl;
+      int32_t ret = msc_.ReleaseMode(); 
+      if (ret == 0) {
+          std::cout << "ReleaseMode succeeded." << std::endl;
+      } else {
+          std::cout << "ReleaseMode failed. Error code: " << ret << std::endl;
+      }
+     std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
 }
 
 void Custom::InitLowCmd() {
@@ -87,7 +103,7 @@ void Custom::InitLowCmd() {
   low_cmd_.gpio = 0;
 
   for (int i = 0; i < 20; i++) {
-    low_cmd_.motor_cmd[i].mode = (0x01);
+    low_cmd_.motor_cmd[i].mode = (0x0A);  // motor switch to servo (PMSM) mode
     low_cmd_.motor_cmd[i].q = (PosStopF);
     low_cmd_.motor_cmd[i].kp = (0);
     low_cmd_.motor_cmd[i].dq = (VelStopF);
@@ -150,7 +166,7 @@ void Custom::LowStateMessageHandler(
 }
 
 void Custom::LowCmdWrite() {
-  if (_percent_4 < 1) {
+  if (percent_5_ < 1) {
     std::cout << "Read sensor data example: " << std::endl;
     std::cout << "Joint 0 pos: " << low_state_.motor_state[0].q << std::endl;
     std::cout << "Imu accelerometer : " << "x: "
@@ -160,99 +176,86 @@ void Custom::LowCmdWrite() {
     std::cout << "Foot force " << low_state_.foot_force[0] << std::endl;
     std::cout << std::endl;
   }
-  if ((_percent_4 == 1) && (!done)) {
+  if ((percent_5_ == 1) && (!done_)) {
     std::cout << "The example is done! " << std::endl;
     std::cout << std::endl;
-    done = true;
+    done_ = true;
   }
 
-  motiontime++;
-  if (motiontime >= 500) {
-    if (firstRun) {
+  motiontime_++;
+  if (motiontime_ >= 500) {
+    if (first_run_) {
       for (int i = 0; i < 12; i++) {
-        _startPos[i] = low_state_.motor_state[i].q;
+        start_pos_[i] = low_state_.motor_state[i].q;
       }
-      firstRun = false;
+      first_run_ = false;
     }
 
-    _percent_1 += static_cast<float>(1) / _duration_1;
-    _percent_1 = _percent_1 > 1 ? 1 : _percent_1;
-    if (_percent_1 < 1) {
+    percent_1_ += static_cast<float>(1) / duration_1_;
+    percent_1_ = percent_1_ > 1 ? 1 : percent_1_;
+    if (percent_1_ < 1) {
       for (int j = 0; j < 12; j++) {
         low_cmd_.motor_cmd[j].q =
-            (1 - _percent_1) * _startPos[j] + _percent_1 * _targetPos_1[j];
+            (1 - percent_1_) * start_pos_[j] + percent_1_ * target_pos_1_[j];
         low_cmd_.motor_cmd[j].dq = 0;
-        low_cmd_.motor_cmd[j].kp = Kp;
-        low_cmd_.motor_cmd[j].kd = Kd;
+        low_cmd_.motor_cmd[j].kp = kp_;
+        low_cmd_.motor_cmd[j].kd = kd_;
         low_cmd_.motor_cmd[j].tau = 0;
       }
     }
-    if ((_percent_1 == 1) && (_percent_2 < 1)) {
-      _percent_2 += static_cast<float>(1) / _duration_2;
-      _percent_2 = _percent_2 > 1 ? 1 : _percent_2;
+    if ((percent_1_ == 1) && (percent_2_ < 1)) {
+      percent_2_ += static_cast<float>(1) / duration_2_;
+      percent_2_ = percent_2_ > 1 ? 1 : percent_2_;
 
       for (int j = 0; j < 12; j++) {
         low_cmd_.motor_cmd[j].q =
-            (1 - _percent_2) * _targetPos_1[j] + _percent_2 * _targetPos_2[j];
+            (1 - percent_2_) * target_pos_1_[j] + percent_2_ * target_pos_2_[j];
         low_cmd_.motor_cmd[j].dq = 0;
-        low_cmd_.motor_cmd[j].kp = Kp;
-        low_cmd_.motor_cmd[j].kd = Kd;
+        low_cmd_.motor_cmd[j].kp = kp_;
+        low_cmd_.motor_cmd[j].kd = kd_;
         low_cmd_.motor_cmd[j].tau = 0;
       }
     }
 
-    if ((_percent_1 == 1) && (_percent_2 == 1) && (_percent_3 < 1)) {
-      _percent_3 += static_cast<float>(1) / _duration_3;
-      _percent_3 = _percent_3 > 1 ? 1 : _percent_3;
+    if ((percent_1_ == 1) && (percent_2_ == 1) && (percent_3_ < 1)) {
+      percent_3_ += static_cast<float>(1) / duration_3_;
+      percent_3_ = percent_3_ > 1 ? 1 : percent_3_;
 
       for (int j = 0; j < 12; j++) {
-        low_cmd_.motor_cmd[j].q = _targetPos_2[j];
+        low_cmd_.motor_cmd[j].q = target_pos_2_[j];
         low_cmd_.motor_cmd[j].dq = 0;
-        low_cmd_.motor_cmd[j].kp = Kp;
-        low_cmd_.motor_cmd[j].kd = Kd;
+        low_cmd_.motor_cmd[j].kp = kp_;
+        low_cmd_.motor_cmd[j].kd = kd_;
         low_cmd_.motor_cmd[j].tau = 0;
-      }
-      
-      if (_percent_3 < 0.4) {
-        for (int j = 12; j < 16; j++) {
-          low_cmd_.motor_cmd[j].q = 0;
-          low_cmd_.motor_cmd[j].kp = 0;
-          low_cmd_.motor_cmd[j].dq = 3;
-          low_cmd_.motor_cmd[j].kd = Kd;
-          low_cmd_.motor_cmd[j].tau = 0;
-        }
-      } else if ((_percent_3 >= 0.4) && (_percent_3 < 0.8)) {
-        for (int j = 12; j < 16; j++) {
-          low_cmd_.motor_cmd[j].q = 0;
-          low_cmd_.motor_cmd[j].kp = 0;
-          low_cmd_.motor_cmd[j].dq = -3;
-          low_cmd_.motor_cmd[j].kd = Kd;
-          low_cmd_.motor_cmd[j].tau = 0;
-        }
-      } else if (_percent_3 >= 0.8) {
-        for (int j = 12; j < 16; j++) {
-          low_cmd_.motor_cmd[j].q = 0;
-          low_cmd_.motor_cmd[j].kp = 0;
-          low_cmd_.motor_cmd[j].dq = 0;
-          low_cmd_.motor_cmd[j].kd = Kd;
-          low_cmd_.motor_cmd[j].tau = 0;
-        }
       }
     }
     
-    if ((_percent_1 == 1) && (_percent_2 == 1) && (_percent_3 == 1) &&
-        ((_percent_4 <= 1))) {
-      _percent_4 += static_cast<float>(1) / _duration_4;
-      _percent_4 = _percent_4 > 1 ? 1 : _percent_4;
+    if ((percent_1_ == 1) && (percent_2_ == 1) && (percent_3_ == 1) && (percent_4_ < 1)) {
+      percent_4_ += static_cast<float>(1) / duration_4_;
+      percent_4_ = percent_4_ > 1 ? 1 : percent_4_;
       for (int j = 0; j < 12; j++) {
         low_cmd_.motor_cmd[j].q =
-            (1 - _percent_4) * _targetPos_2[j] + _percent_4 * _targetPos_3[j];
+            (1 - percent_4_) * target_pos_2_[j] + percent_4_ * target_pos_3_[j];
         low_cmd_.motor_cmd[j].dq = 0;
-        low_cmd_.motor_cmd[j].kp = Kp;
-        low_cmd_.motor_cmd[j].kd = Kd;
+        low_cmd_.motor_cmd[j].kp = kp_;
+        low_cmd_.motor_cmd[j].kd = kd_;
         low_cmd_.motor_cmd[j].tau = 0;
       }
     }
+
+    if ((percent_1_ == 1) && (percent_2_ == 1) && (percent_3_ == 1) && (percent_4_ == 1) && ((percent_5_ <= 1))) {
+      percent_5_ += static_cast<float>(1) / duration_5_;
+      percent_5_ = percent_5_ > 1 ? 1 : percent_5_;
+      for (int j = 0; j < 12; j++) {
+        low_cmd_.motor_cmd[j].q =
+            (1 - percent_5_) * target_pos_3_[j] + percent_5_ * target_pos_4_[j];
+        low_cmd_.motor_cmd[j].dq = 0;
+        low_cmd_.motor_cmd[j].kp = kp_;
+        low_cmd_.motor_cmd[j].kd = kd_;
+        low_cmd_.motor_cmd[j].tau = 0;
+      }
+    }
+    
     get_crc(low_cmd_); 
     
     lowcmd_publisher->publish(low_cmd_);
