@@ -209,7 +209,7 @@ The source code of the supplied examples can be found on `/example_ws/src/src`:
 | read_low_state                         | Read the low-level state           | go2/w and B2     |
 | read_low_state_hg                      | Read the low-level state           | G1 and H1-2      |
 | read_motion_state                      | Read the motion state              | go2/w and B2     |
-| read_wireless_controller               | Read the wireless controller input  G1, go2/w and B2 |
+| read_wireless_controller               | Read the wireless controller input | G1, go2/w and B2 |
 | record_bag                             | ros2 bag recording example         | all              |
 | go2/go2_sport_client                   | High-level sportmode control       | go2/w            |
 | go2/go2_stand_example                  | Robot standing example             | go2/w            |
