@@ -203,17 +203,17 @@ The source code of the supplied examples can be found on `/example_ws/src/src`:
 | subdirectory | description | supported robots
 |--|--|--|
 | common                                 | Common functions                   | all              |
-| g1/lowlevel/g1_low_level_example       | Low level control                  | G1               |
-| h1-2/lowlevel/low_level_ctrl_hg        | Low level control                  | H1-2             |
-| low_level_ctrl                         | Low level control                  | go2/w and B2     |
-| read_low_state                         | Read the low state                 | go2/w and B2     |
-| read_low_state_hg                      | Read the low state                 | G1 and H1-2      |
+| g1/lowlevel/g1_low_level_example       | Low-level control                  | G1               |
+| h1-2/lowlevel/low_level_ctrl_hg        | Low-level control                  | H1-2             |
+| low_level_ctrl                         | Low-level control                  | go2/w and B2     |
+| read_low_state                         | Read the low-level state           | go2/w and B2     |
+| read_low_state_hg                      | Read the low-level state           | G1 and H1-2      |
 | read_motion_state                      | Read the motion state              | go2/w and B2     |
-| read_wireless_controller               | Read the wireless controller state | G1, go2/w and B2 |
+| read_wireless_controller               | Read the wireless controller input  G1, go2/w and B2 |
 | record_bag                             | ros2 bag recording example         | all              |
-| go2/go2_sport_client                   | High level sportmode control       | go2/w            |
-| go2/go2_stand_example                  | Robot stand example                | go2/w            |
-| go2/go2_robot_state_client             | Robot state example                | go2/w            |
+| go2/go2_sport_client                   | High-level sportmode control       | go2/w            |
+| go2/go2_stand_example                  | Robot standing example             | go2/w            |
+| go2/go2_robot_state_client             | Robot state client example         | go2/w            |
 
 Open a terminal and input:
 
@@ -223,10 +223,8 @@ cd ~/unitree_ros2/example_ws
 colcon build --symlink-install
 ```
 
-to compile the examples. Then run:
+to compile the examples.
 
-```bash
-./install/unitree_ros2_example/bin/read_motion_state 
-```
+## Usage
 
-and you should see the robot status information output on the terminal.
+[TODO]
