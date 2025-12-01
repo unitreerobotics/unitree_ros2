@@ -145,7 +145,6 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 export CYCLONEDDS_URI='<CycloneDDS>
     <Domain>
         <General>
-            <AllowMulticast>spdp</AllowMulticast>
             <Interfaces>
                 <NetworkInterface name="enXXXX" priority="default" multicast="default" />
             </Interfaces>
