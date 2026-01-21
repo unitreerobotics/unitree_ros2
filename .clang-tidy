@@ -1,0 +1,117 @@
+Checks: >
+  -*,
+  -system-headers,
+  include-sort,
+  performance-*,
+  cppcoreguidelines-*,
+  google-*,
+  google-readability-function-comments,
+  bugprone-*,
+  misc-*,
+  modernize-*,
+  boost-use-to-string,
+  clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  cert-*,
+  cwe-*,
+  readability-*,
+  -readability-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-macro-usage,
+  -performance-avoid-endl,
+  -misc-non-private-member-variables-in-classes,
+  -bugprone-exception-escape,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -misc-include-cleaner,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-vararg
+
+
+
+CheckOptions:
+  # Ignore Ros2 foxy SharedPtr
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'SharedPtr;std::shared_ptr'
+  - key: performance-unnecessary-copy-initialization.AllowedTypes
+    value: Ptr
+  - key: readability-simplify-boolean-expr.SimplifyDeMorgan
+    value: false
+  - key: cppcoreguidelines-unused-variable.IgnorePattern
+    value: "^_$"
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'ASSERT'
+  - key: bugprone-dangling-handle.HandleClasses
+    value: 'std::basic_string_view;std::experimental::basic_string_view;absl::string_view'
+  - key: readability-identifier-naming.ClassCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.EnumCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.EnumConstantCase
+    value: 'UPPER_CASE'
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: 'UPPER_CASE'
+  # Ignore GoogleTest function macros.
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    # To have the regex chomped correctly fence all items with `|` (other than first/last)
+    value: >-
+      (^AbslHashValue$|
+      |^called_count$|
+      |^case_sensitive$|
+      |^Create$|
+      |^evconnlistener_free$|
+      |^event_base_free$|
+      |^(get|set)EVP_PKEY$|
+      |^has_value$|
+      |^Ip6(ntohl|htonl)$|
+      |^get_$|
+      |^HeaderHasValue(Ref)?$|
+      |^HeaderValueOf$|
+      |^Is(Superset|Subset)OfHeaders$|
+      |^LLVMFuzzerInitialize$|
+      |^LLVMFuzzerTestOneInput$|
+      |^Locality$|
+      |^MOCK_METHOD$|
+      |^PrepareCall$|
+      |^PrintTo$|
+      |^resolve_dns$|
+      |^result_type$|
+      |Returns(Default)?WorkerId$|
+      |^sched_getaffinity$|
+      |^shutdownThread_$|
+      |TEST|
+      |TEST_F|
+      |^use_count$)
+  - key: readability-identifier-naming.ParameterCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.ParameterIgnoredRegexp
+    value: (^cname_ttl_$)
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: 'lower_case'
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: '_'
+  - key: readability-identifier-naming.StructCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.TypeAliasCase
+    value: 'CamelCase'
+  - key: readability-identifier-naming.TypeAliasIgnoredRegexp
+    value: '(result_type)'
+  - key: readability-identifier-naming.UnionCase
+    value: 'CamelCase'
+  # - key: readability-identifier-naming.FunctionCase
+  #   value: 'CamelCase'
+
+HeaderFilterRegex: '^./include/seam_detector/.*\\.hpp$|^./src/.*\\.hpp$|^./test/.*\\.hpp$'
+UseColor: true
+
+WarningsAsErrors: '*'

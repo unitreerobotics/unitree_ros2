@@ -1,0 +1,46 @@
+name: Generate Changelog and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 仅当推送 tag，如 v1.2.3 时触发
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      # - name: Set up Git
+      #   run: |
+      #     git config --global user.name 'github-actions[bot]'
+      #     git config --global user.email 'github-actions[bot]@unitree.com'
+          
+      # - name: Generate changelog
+      #   run: |
+      #     docker run -v "$PWD":/workdir quay.io/git-chglog/git-chglog -o CHANGELOG.md
+
+      # - name: Commit changelog
+      #   run: |
+      #     git add CHANGELOG.md
+      #     git commit -m "docs(changelog): update changelog for ${{ github.ref_name }}"
+      #     git push
+
+      - name: Read changelog content
+        id: changelog
+        run: |
+          BODY=$(awk '/^## \[?${{ github.ref_name }}\]?/ {flag=1;next} /^## /{flag=0} flag' CHANGELOG.md)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.content }}

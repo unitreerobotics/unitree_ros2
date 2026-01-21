@@ -13,7 +13,13 @@ Tested systems and ROS2 distro
 |systems|ROS2 distro|
 |--|--|
 |Ubuntu 20.04|foxy|
-|Ubuntu 22.04|humble|
+|Ubuntu 22.04|humble (recommend)|
+
+If you want to directly use the `Docker development environment`, you can refer to the `Dockerfile` related content in the `.devcontainer` folder.
+You can also use the `Dev Container feature of VSCode` or other IDEs to create a development environment, or use `Github's codespace` to quickly create a development environment.
+If you do encounter compilation issues, you can refer to the compilation scripts in `. github/workflows/` or ask questions in `issues`.
+
+##Install Unitree Robot Ros2 Feature Pack
 
 Taking ROS2 foxy as an example, if you need another version of ROS2, replace "foxy" with the current ROS2 version name in the corresponding place:
 
@@ -35,9 +41,10 @@ where:
 ```bash
 sudo apt install ros-foxy-rmw-cyclonedds-cpp
 sudo apt install ros-foxy-rosidl-generator-dds-idl
+sudo apt install libyaml-cpp-dev
 ```
 
-### 2. Compile cyclone dds
+### 2. Compile cyclone dds (If using Humble, this step can be skipped)
 The cyclonedds version of Unitree robot is 0.10.2. To communicate with Unitree robots using ROS2, it is necessary to change the dds implementation. See：https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html
 
 Before compiling cyclonedds, please ensure that ros2 environment has **NOT** been sourced when starting the terminal. Otherwise, it may cause errors in compilation.
@@ -59,6 +66,7 @@ cd ~/unitree_ros2/cyclonedds_ws/src
 git clone https://github.com/ros2/rmw_cyclonedds -b foxy
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
 cd ..
+# If build failed, try run: `export LD_LIBRARY_PATH=/opt/ros/foxy/lib` first.
 colcon build --packages-select cyclonedds #Compile cyclone-dds package
 ```
 
@@ -127,6 +135,21 @@ Input ros2 topic echo /sportmodestate，you can see the data of the topic as 
 
 
 ### 3. Examples
+
+The source code of examples locates at `/example/src/src`.
+- common: Common functions for all robots.
+- g1/lowlevel/g1_low_level_example: Low level control for G1
+- h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
+- low_level_ctrl: Low level control for Go2/B2
+- read_low_state: Read the low state from Go2/B2
+- read_low_state_hg: Read the low state from G1/H1/H1-2
+- read_motion_state: Read the sport mode state from Go2/B2
+- read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
+- record_bag: Ros bag recording example.
+- go2/go2_sport_client: High level control for Go2.
+- go2/go2_stand_example: Stand example for Go2.
+- go2/go2_robot_state_client：Robot State Example for Go2。
+
 Open a terminal and input:
 ```bash
 source ~/unitree_ros2/setup.sh
@@ -323,7 +346,7 @@ Firstly, list all topics：
 ```bash
 ros2 topic list
 ```
-![image](https://z1.ax1x.com/2023/10/20/piFtteJ.png)
+![image](docs/image/piFtteJ.png)
 
 We can find the topic of lida：
 ```bash
@@ -334,7 +357,7 @@ Then, echo frame_id of lidar：
 ros2 topic echo --no-arr /utlidar/cloud
 ```
 where frame_id: utlidar_lidar
-![image](https://z1.ax1x.com/2023/10/20/piFtdF1.png)
+![image](docs/image/piFtdF1.png)
 
 Finally, run rviz：
 ```
@@ -343,7 +366,7 @@ ros2 run rviz2 rviz2
 Add Pointcloud topic: utlidar/cloud in rviz2 and modify Fixed frame to utlidar_lidar. Then, the lidar data is displayed in rviz2. 
 
 
-![image](https://z1.ax1x.com/2023/10/20/piFtsyD.png)
-![image](https://z1.ax1x.com/2023/10/20/piFtyOe.png)
+![image](docs/image/piFtsyD.png)
+![image](docs/image/piFtyOe.png)
 
 

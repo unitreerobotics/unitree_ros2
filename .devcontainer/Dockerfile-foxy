@@ -1,0 +1,37 @@
+FROM althack/ros2:foxy-full
+
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone 
+USER root
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list
+
+# install zsh and oh-my-zsh
+RUN apt update && apt install -y zsh git
+RUN wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh && chmod +x install.sh && ls
+RUN ./install.sh
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    apt install zsh-syntax-highlighting
+
+# configure zsh
+RUN echo 'export ZSH=$HOME/.oh-my-zsh' >> ~/.zshrc && \
+    echo 'ZSH_THEME="ys"' >> ~/.zshrc && \
+    echo 'plugins=(git zsh-autosuggestions)' >> ~/.zshrc && \
+    echo 'source $ZSH/oh-my-zsh.sh' >> ~/.zshrc && \
+    echo 'source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' >> ~/.zshrc
+
+# # install clang tools
+# RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 18 all
+# RUN update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-18 100 \
+#     && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100 \
+#     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100 \
+#     && update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-18 100 \
+#     && update-alternatives --install /usr/bin/run-clang-tidy run-clang-tidy /usr/bin/run-clang-tidy-18 100
+# ENV CC=/usr/bin/clang-18
+# ENV CXX=/usr/bin/clang++-18
+
+WORKDIR /workspace
+RUN echo "source /opt/ros/foxy/setup.sh" >> ~/.zshrc 
+RUN apt update && apt install -y ros-foxy-rmw-cyclonedds-cpp ros-foxy-rosidl-generator-dds-idl
+CMD [ "zsh" ]
