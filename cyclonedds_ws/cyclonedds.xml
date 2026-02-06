@@ -1,0 +1,10 @@
+<CycloneDDS>
+    <Domain>
+        <General>
+            <AllowMulticast>spdp</AllowMulticast>
+            <Interfaces>
+                <NetworkInterface name="enXXXX" priority="default" multicast="default"/>
+            </Interfaces>
+        </General>
+    </Domain>
+</CycloneDDS>
