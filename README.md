@@ -40,8 +40,9 @@ you encounter problems while compiling, refer to the compilation scripts in
 (Replace "$ROS_DISTRO" with the current ROS2 version name in the corresponding 
 places).
 
-Install ROS2 following the instructions on
-https://docs.ros.org/en/$ROS_DISTRO/Installation/Ubuntu-Install-Debians.html.
+Install ROS2 following the [official
+documentation](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
+instructions.
 
 ### Installing the unitree_ros2 package
 
@@ -182,13 +183,10 @@ source ~/unitree_ros2/setup_default.sh
 
 ### 2. Testing
 
-After completing the above configuration, it is recommended to restart the 
-computer before conducting the test.
-
-Ensure that the robot's network connection is up, open a terminal and input:
+After completing the above configuration, ensure that the robot's network
+connection is up, open a terminal and input:
 
 ```bash
-source ~/unitree_ros2/setup.sh
 ros2 topic list
 ```
 
@@ -214,10 +212,9 @@ The source code of the supplied examples can be found on `/example_ws/src/src`:
 | go2/go2_stand_example                  | Robot standing example             | go2/w            |
 | go2/go2_robot_state_client             | Robot state client example         | go2/w            |
 
-Open a terminal and input:
+Open a terminal, setup the ROS2 environment and input:
 
 ```bash
-source ~/unitree_ros2/setup.sh
 cd ~/unitree_ros2/example_ws
 colcon build --symlink-install
 ```
