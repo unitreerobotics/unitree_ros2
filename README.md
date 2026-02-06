@@ -37,11 +37,11 @@ you encounter problems while compiling, refer to the compilation scripts in
 
 ### Installing ROS2 foxy
 
-(If you need another version of ROS2, replace "foxy" with the current ROS2 
-version name in the corresponding places).
+(Replace "$ROS_DISTRO" with the current ROS2 version name in the corresponding 
+places).
 
-Install ROS2 foxy following the instructions on
-https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html.
+Install ROS2 following the instructions on
+https://docs.ros.org/en/$ROS_DISTRO/Installation/Ubuntu-Install-Debians.html.
 
 ### Installing the unitree_ros2 package
 
@@ -63,23 +63,23 @@ containing the following ROS2 workspaces:
 #### 2. Install dependencies
 
 ```bash
-sudo apt install build-dep ros-foxy-cyclonedds
-sudo apt install ros-foxy-rosidl-generator-dds-idl libyaml-cpp-dev
+sudo apt install build-dep ros-$ROS_DISTRO-cyclonedds
+sudo apt install ros-$ROS_DISTRO-rosidl-generator-dds-idl libyaml-cpp-dev
 ```
 
 #### 3. Compile cyclonedds
 
 (If using humble+, this step can be skipped - just install 
-`ros-$ROS_DISTRO-cyclonedds ros-$ROS_DISTRO-rmw-cyclonedds-cpp` with `apt`)
+`ros-$ROS_DISTRO-rmw-cyclonedds-cpp` with `apt`)
 
 The cyclonedds version installed on the Unitree robot's embedded computers is
 0.10.2. To communicate with a Unitree robot using ROS2, it is necessary to
 [change the default DDS
-implementation](https://docs.ros.org/en/foxy/Concepts/About-Different-Middleware-Vendors.html)
+implementation](https://docs.ros.org/en/$ROS_DISTRO/Concepts/About-Different-Middleware-Vendors.html)
 
 Before compiling cyclonedds, please ensure that ros2 environment has **NOT**
 been sourced when starting the terminal. -- it may cause errors upon
-compilation -- if `source/opt/ros/foxy/setup.bash` has been added to the
+compilation -- if `source/opt/ros/$ROS_DISTRO/setup.bash` has been added to the
 ~/.bashrc file when installing ROS2, it needs to be commented out:
 
 ```bash
@@ -88,18 +88,18 @@ sudo gedit ~/.bashrc
 ``` 
 
 ```bash
-# source /opt/ros/foxy/setup.bash 
+# source /opt/ros/$ROS_DISTRO/setup.bash 
 ```
 
 Then compile cyclonedds:
 
 ```bash
 cd ~/unitree_ros2/cyclonedds_ws/src
-git clone https://github.com/ros2/rmw_cyclonedds -b foxy
+git clone https://github.com/ros2/rmw_cyclonedds -b $ROS_DISTRO
 git clone https://github.com/eclipse-cyclonedds/cyclonedds -b releases/0.10.x 
 cd ..
 
-# If the build process failed, try running `export LD_LIBRARY_PATH=/opt/ros/foxy/lib` first.
+# If the build process failed, try running `export LD_LIBRARY_PATH=/opt/ros/$ROS_DISTRO/lib` first.
 colcon build --symlink-install --packages-select cyclonedds
 ```
 
@@ -111,7 +111,7 @@ the `unitree_api`, `unitree_go` and `unitree_hg` packages on the
 before compiling the packages:
 
 ```bash
-source /opt/ros/foxy/setup.bash
+source /opt/ros/$ROS_DISTRO/setup.bash
 colcon build --symlink-install
 ```
 
