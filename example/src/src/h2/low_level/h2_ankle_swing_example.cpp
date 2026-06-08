@@ -55,18 +55,18 @@ enum H2JointIndex
     LeftHipRoll = 1,
     LeftHipYaw = 2,
     LeftKnee = 3,
-    LeftAnklePitch = 4,
-    LeftAnkleB = 4,
-    LeftAnkleRoll = 5,
-    LeftAnkleA = 5,
+    LeftAnkleRoll = 4,
+    LeftAnkleRollRaw = 4,
+    LeftAnklePitch = 5,
+    LeftAnklePitchRaw = 5,
     RightHipPitch = 6,
     RightHipRoll = 7,
     RightHipYaw = 8,
     RightKnee = 9,
-    RightAnklePitch = 10,
-    RightAnkleB = 10,
-    RightAnkleRoll = 11,
-    RightAnkleA = 11,
+    RightAnkleRoll = 10,
+    RightAnkleRollRaw = 10,
+    RightAnklePitch = 11,
+    RightAnklePitchRaw = 11,
     WaistYaw = 12,
     WaistRoll = 13,       
     WaistA = 13,    
@@ -209,11 +209,10 @@ private:
             const double R_A_des = -max_A * std::sin(M_PI * t);
             const double R_B_des = -max_B * std::sin(M_PI * t + M_PI);
 
-            // AB: use A/B indices (compact indexing).
-            low_cmd_.motor_cmd[joint_idx_in_idl.at(LeftAnkleA)].q = static_cast<float>(L_A_des);
-            low_cmd_.motor_cmd[joint_idx_in_idl.at(LeftAnkleB)].q = static_cast<float>(L_B_des);
-            low_cmd_.motor_cmd[joint_idx_in_idl.at(RightAnkleA)].q = static_cast<float>(R_A_des);
-            low_cmd_.motor_cmd[joint_idx_in_idl.at(RightAnkleB)].q = static_cast<float>(R_B_des);
+            low_cmd_.motor_cmd[joint_idx_in_idl.at(LeftAnklePitchRaw)].q = static_cast<float>(L_A_des);
+            low_cmd_.motor_cmd[joint_idx_in_idl.at(LeftAnkleRollRaw)].q = static_cast<float>(L_B_des);
+            low_cmd_.motor_cmd[joint_idx_in_idl.at(RightAnklePitchRaw)].q = static_cast<float>(R_A_des);
+            low_cmd_.motor_cmd[joint_idx_in_idl.at(RightAnkleRollRaw)].q = static_cast<float>(R_B_des);
         }
 
         get_crc(low_cmd_);
