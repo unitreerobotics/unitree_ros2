@@ -34,6 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/Response.msg"
         "msg/ResponseHeader.msg"
         "msg/ResponseStatus.msg"
+        "srv/Generic.srv"
 
   DEPENDENCIES geometry_msgs
 )

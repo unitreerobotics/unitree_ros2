@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/AudioData.msg"
         "msg/BmsCmd.msg"
         "msg/BmsState.msg"
+        "msg/ConfigChangeStatus.msg"
         "msg/Error.msg"
         "msg/Go2FrontVideoData.msg"
         "msg/HeightMap.msg"
