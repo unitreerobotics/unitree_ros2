@@ -4,7 +4,10 @@
 """Read-only gate to pass before running a GO2 telemetry example against a robot.
 
 Exit status is 0 only when every check passed. Any failed or inconclusive check
-exits 1. The script observes the ROS graph of the current environment and writes
+exits 1, except that a check compared with --baseline exits 3 when its only
+failure is that acknowledged writers from the baseline were withdrawn and none
+appeared. That is still a failure for the supervisor to review, not a pass.
+The script observes the ROS graph of the current environment and writes
 no topic, service, parameter or configuration; see docs/jazzy.md for the session
 procedure and for what discovery itself puts on the network.
 """
@@ -26,6 +29,13 @@ APPROVED = {
     'read_motion_state': ('/lf/sportmodestate', 'unitree_go/msg/SportModeState'),
     'read_wireless_controller': ('/wirelesscontroller', 'unitree_go/msg/WirelessController'),
 }
+# ROS node name of each approved example, for attributing endpoints seen while
+# it runs (--monitor).
+EXAMPLE_NODES = {
+    'read_low_state': 'low_state_suber',
+    'read_motion_state': 'motion_state_suber',
+    'read_wireless_controller': 'wireless_controller_suber',
+}
 COMMAND_TYPE = re.compile(r'^unitree_\w+/msg/\w*(Cmds?|Switch|Req|Request)$')
 COMMAND_TOPIC = re.compile(r'lowcmd|cmd_vel|uwbswitch|/request$', re.IGNORECASE)
 # What the ROS graph reports for a plain DDS endpoint. _NODE_NAME_UNKNOWN_ means
@@ -38,6 +48,10 @@ PUBLISHER_TYPE = re.compile(r'rclcpp::Publisher<([\w:]+)')
 # the telemetry examples leave disabled.
 STATISTICS_PUBLISHER = 'statistics_msgs::msg::MetricsMessage_'
 GUARD_SECONDS = 5
+# Exit status of a baseline comparison whose only failure is withdrawn writers.
+WITHDRAWN_ONLY = 3
+COUNT_CHECK = 'no unacknowledged non-ROS writer on a command topic'
+WITHDRAWN_CHECK = 'no baseline command writer withdrawn'
 
 
 class Report:
@@ -45,6 +59,7 @@ class Report:
     def __init__(self):
         self.checks = []
         self.data = {}
+        self.withdrawn_only = False
 
     def check(self, name, passed, detail=''):
         self.checks.append({'name': name, 'passed': bool(passed), 'detail': str(detail)})
@@ -118,11 +133,18 @@ def check_binaries(report, examples):
     return ok
 
 
+def participant_of(gid):
+    """Return the DDS participant GUID prefix (first 12 bytes) of an endpoint gid."""
+    return gid[:24]
+
+
 def publisher_record(info):
+    gid = bytes(info.endpoint_gid).hex()
     return {
         'node': info.node_name,
         'type': info.topic_type,
-        'gid': bytes(info.endpoint_gid).hex(),
+        'gid': gid,
+        'participant': participant_of(gid),
         'reliability': getattr(info.qos_profile.reliability, 'name',
                                str(info.qos_profile.reliability)),
         'durability': getattr(info.qos_profile.durability, 'name',
@@ -148,7 +170,18 @@ def telemetry_problem(topic, expected_type, publishers):
     return ''
 
 
-def observe_graph(report, args, examples, acknowledged):
+def graph_participants(node):
+    """Map each participant with an endpoint in the graph to its ROS node names."""
+    participants = {}
+    for topic, _ in node.get_topic_names_and_types():
+        for info in node.get_publishers_info_by_topic(topic) + \
+                node.get_subscriptions_info_by_topic(topic):
+            names = participants.setdefault(participant_of(bytes(info.endpoint_gid).hex()), set())
+            names.add(info.node_name)
+    return {key: sorted(names) for key, names in participants.items()}
+
+
+def observe_graph(report, args, examples, acknowledged, baseline):
     import rclpy
     from rclpy.context import Context
     from rclpy.node import Node
@@ -185,8 +218,12 @@ def observe_graph(report, args, examples, acknowledged):
             'services': node.get_service_names_and_types_by_node(name, '/'),
         }
         report.check('this check owns no publisher or service', not any(own.values()), own)
-        commands, telemetry = {}, {}
-        telemetry_deadline = time.monotonic() + args.timeout
+        # Every command writer seen at any time, so one that a short-lived
+        # process created and removed during --monitor is still reported.
+        commands, telemetry, example_nodes = {}, {}, set()
+        started = time.monotonic()
+        telemetry_deadline = started + args.timeout
+        monitor_deadline = started + args.monitor
         settled_at = None
         while True:
             now = time.monotonic()
@@ -195,6 +232,8 @@ def observe_graph(report, args, examples, acknowledged):
                     for info in node.get_publishers_info_by_topic(topic):
                         record = publisher_record(info)
                         commands[(topic, record['gid'])] = dict(record, topic=topic)
+            if args.monitor:
+                example_nodes |= set(node.get_node_names()) & set(EXAMPLE_NODES.values())
             telemetry = {}
             for example in examples:
                 topic = APPROVED[example][0]
@@ -207,17 +246,25 @@ def observe_graph(report, args, examples, acknowledged):
                 settled_at = now + args.settle
             if not found:
                 settled_at = None
-            if (found and now >= settled_at) or (not found and now >= telemetry_deadline):
+            if (found and now >= max(settled_at, monitor_deadline)) or \
+                    (not found and now >= telemetry_deadline):
                 break
             time.sleep(0.05)
         report.data['telemetry_publishers'] = telemetry
+        if args.monitor:
+            report.data['monitor_seconds'] = args.monitor
+            report.data['example_nodes_seen'] = sorted(example_nodes)
+        participants = graph_participants(node)
+        report.data['participants'] = participants
         for example in examples:
             topic, expected_type = APPROVED[example]
             problem = telemetry_problem(topic, expected_type, telemetry[topic])
             report.check('telemetry %s (%s)' % (topic, expected_type), not problem,
                          problem or '%d publisher(s)' % len(telemetry[topic]))
-        check_command_writers(report, sorted(commands.values(), key=lambda r: r['topic']),
-                              acknowledged)
+        writers = sorted(commands.values(), key=lambda r: (r['topic'], r['gid']))
+        check_command_writers(report, writers, acknowledged)
+        if baseline is not None:
+            compare_with_baseline(report, args, acknowledged, writers, baseline, participants)
     finally:
         if node is not None:
             node.destroy_node()
@@ -234,8 +281,53 @@ def check_command_writers(report, writers, acknowledged):
         if item['node'] == NON_ROS_OWNER:
             counts[item['topic']] = counts.get(item['topic'], 0) + 1
     report.data['acknowledged_nonros_writers'] = acknowledged
-    report.check('no unacknowledged non-ROS writer on a command topic', counts == acknowledged,
+    report.check(COUNT_CHECK, counts == acknowledged,
                  'discovered %s, acknowledged %s' % (counts, acknowledged))
+
+
+def attribute(item, baseline_participants):
+    if item['node'] in EXAMPLE_NODES.values():
+        return 'telemetry example node ' + item['node']
+    if item['node'] != NON_ROS_OWNER:
+        return 'ROS node ' + item['node']
+    if participant_of(item['gid']) in baseline_participants:
+        return 'new writer of a baseline participant'
+    return 'unidentified participant'
+
+
+def compare_with_baseline(report, args, acknowledged, writers, baseline, participants):
+    """Separate command writers lost since the baseline from writers gained.
+
+    A gained writer always fails, whoever owns it. A lost one fails too, because
+    the graph is no longer the one the supervisor acknowledged, but it is
+    reported apart, so that a firmware process withdrawing a writer is not taken
+    for an endpoint of this session, or the reverse.
+    """
+    report.check('baseline is a passing report for this domain, interface and acknowledgement',
+                 baseline.get('result') == 'PASS' and baseline.get('domain') == args.domain and
+                 baseline.get('interface') == args.interface and
+                 baseline.get('acknowledged_nonros_writers') == acknowledged,
+                 '%s %s %s' % (baseline.get('result'), baseline.get('domain'),
+                               baseline.get('interface')))
+    before = {(item['topic'], item['gid']): item for item in baseline.get('command_writers', [])}
+    known = {participant_of(item['gid']) for item in before.values()}
+    for items in baseline.get('telemetry_publishers', {}).values():
+        known |= {participant_of(item['gid']) for item in items}
+    now = {(item['topic'], item['gid']) for item in writers}
+    added = [dict(item, attribution=attribute(item, known))
+             for item in writers if (item['topic'], item['gid']) not in before]
+    withdrawn = [dict(item, participant=participant_of(item['gid']),
+                      participant_present=participant_of(item['gid']) in participants)
+                 for key, item in sorted(before.items()) if key not in now]
+    report.data['baseline_comparison'] = {'added': added, 'withdrawn': withdrawn}
+    report.check('no command writer appeared since the baseline', not added,
+                 ['%s %s: %s' % (item['topic'], item['gid'], item['attribution'])
+                  for item in added])
+    report.check(WITHDRAWN_CHECK, not withdrawn,
+                 ['%s %s: participant %s' % (
+                     item['topic'], item['gid'],
+                     'still in the graph' if item['participant_present'] else 'left the graph')
+                  for item in withdrawn])
 
 
 def main():
@@ -252,12 +344,21 @@ def main():
                         help='accept exactly N plain-DDS writers on this command topic; '
                         'a ROS node on the topic always fails')
     parser.add_argument('--report', type=Path, help='write the result as JSON')
+    parser.add_argument('--baseline', type=Path, metavar='REPORT',
+                        help='passing report of an earlier check in this session; command '
+                        'writers gained and lost since it are reported separately')
+    parser.add_argument('--monitor', type=float, default=0.0, metavar='SECONDS',
+                        help='keep recording every command writer for this long, to run '
+                        'alongside the examples; writers that disappear are still reported')
     args = parser.parse_args()
     if not 0 < args.timeout <= 60 or not 0 < args.settle <= 60:
         parser.error('--timeout and --settle must be in (0, 60]')
+    if not 0 <= args.monitor <= 120:
+        parser.error('--monitor must be in [0, 120]')
     try:
         acknowledged = parse_acknowledgements(args.allow_nonros_writer)
-    except ValueError as error:
+        baseline = json.loads(args.baseline.read_text()) if args.baseline else None
+    except (ValueError, OSError) as error:
         parser.error(str(error))
 
     def expired(_signum, _frame):
@@ -265,7 +366,8 @@ def main():
         os._exit(1)
 
     signal.signal(signal.SIGALRM, expired)
-    signal.alarm(int(args.timeout + args.settle) + GUARD_SECONDS)
+    signal.alarm(int(max(args.timeout + args.settle, args.monitor + args.settle)) +
+                 GUARD_SECONDS)
 
     report = Report()
     try:
@@ -273,15 +375,26 @@ def main():
         if (check_examples(report, args.examples) and
                 check_environment(report, args) and
                 check_binaries(report, args.examples)):
-            observe_graph(report, args, args.examples, acknowledged)
+            observe_graph(report, args, args.examples, acknowledged, baseline)
     except Exception as error:  # An unexpected condition is not a pass.
         report.check('completed without error', False, repr(error))
     result = 'PASS' if report.passed() else 'FAIL'
+    failed = {item['name'] for item in report.checks if not item['passed']}
+    # Without additions, a count that differs from the acknowledgement the
+    # baseline passed with can only come from the withdrawn writers.
+    withdrawn_only = baseline is not None and WITHDRAWN_CHECK in failed and \
+        failed <= {WITHDRAWN_CHECK, COUNT_CHECK}
     if args.report:
         args.report.write_text(json.dumps(
             dict(report.data, result=result, checks=report.checks,
+                 failure='baseline writers withdrawn only' if withdrawn_only else None,
+                 baseline=str(args.baseline) if args.baseline else None,
                  domain=args.domain, interface=args.interface,
                  ros_distro=os.environ.get('ROS_DISTRO')), indent=2) + '\n')
+    if withdrawn_only:
+        print('PREFLIGHT FAIL: only acknowledged baseline writers were withdrawn; '
+              'review before accepting', flush=True)
+        return WITHDRAWN_ONLY
     print('PREFLIGHT ' + result, flush=True)
     return 0 if result == 'PASS' else 1
 

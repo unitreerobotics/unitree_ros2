@@ -164,6 +164,74 @@ def test_nonros_command_writer_fails_unless_the_exact_count_is_acknowledged(doma
         assert result.returncode == 0, result.stdout
 
 
+def test_withdrawn_baseline_writer_is_reported_apart_and_still_fails(domain, tmp_path):
+    baseline, after = tmp_path / 'before.json', tmp_path / 'after.json'
+    with Peer('with-lowcmd'):
+        result = preflight(domain, '--allow-nonros-writer', '/lowcmd=1', '--report', str(baseline))
+        assert result.returncode == 0, result.stdout
+    with Peer():
+        result = preflight(domain, '--allow-nonros-writer', '/lowcmd=1',
+                           '--baseline', str(baseline), '--report', str(after))
+    assert result.returncode == 3, result.stdout
+    assert '[FAIL] no baseline command writer withdrawn' in result.stdout, result.stdout
+    assert '[ok] no command writer appeared since the baseline' in result.stdout, result.stdout
+    data = json.loads(after.read_text())
+    assert data['result'] == 'FAIL' and data['failure'] == 'baseline writers withdrawn only'
+    withdrawn = data['baseline_comparison']['withdrawn']
+    assert [item['topic'] for item in withdrawn] == ['/lowcmd']
+    assert withdrawn[0]['participant_present'] is False
+
+
+def test_replaced_writer_fails_although_the_count_matches(domain, tmp_path):
+    baseline = tmp_path / 'before.json'
+    with Peer('with-lowcmd'):
+        result = preflight(domain, '--allow-nonros-writer', '/lowcmd=1', '--report', str(baseline))
+        assert result.returncode == 0, result.stdout
+    with Peer('with-lowcmd'):
+        result = preflight(domain, '--allow-nonros-writer', '/lowcmd=1',
+                           '--baseline', str(baseline))
+    assert result.returncode == 1, result.stdout
+    assert '[ok] no unacknowledged non-ROS writer' in result.stdout, result.stdout
+    assert '[FAIL] no command writer appeared since the baseline' in result.stdout, result.stdout
+    assert 'unidentified participant' in result.stdout, result.stdout
+
+
+def test_failing_baseline_is_not_accepted(domain, tmp_path):
+    baseline = tmp_path / 'before.json'
+    with Peer('with-lowcmd'):
+        result = preflight(domain, '--report', str(baseline))
+        assert result.returncode == 1, result.stdout
+        result = preflight(domain, '--allow-nonros-writer', '/lowcmd=1',
+                           '--baseline', str(baseline))
+    assert result.returncode == 1, result.stdout
+    assert '[FAIL] baseline is a passing report' in result.stdout, result.stdout
+
+
+def test_monitor_reports_a_command_writer_that_is_gone_by_the_end(domain, tmp_path):
+    baseline, report = tmp_path / 'before.json', tmp_path / 'during.json'
+    with Peer(), Observer() as observer:
+        result = preflight(domain, '--report', str(baseline))
+        assert result.returncode == 0, result.stdout
+        process = subprocess.Popen(
+            ['python3', str(SCRIPT), '--domain', str(domain), '--interface', 'lo',
+             '--timeout', '10', '--settle', '1', '--monitor', '6',
+             '--baseline', str(baseline), '--report', str(report)],
+            stdout=subprocess.PIPE, text=True)
+        time.sleep(1.5)
+        # Named like an approved example, with a writer it never publishes to.
+        example = rclpy.create_node('low_state_suber', context=observer.context)
+        example.create_publisher(LowCmd, '/lowcmd', 10)
+        time.sleep(2)
+        example.destroy_node()
+        output = process.communicate(timeout=30)[0]
+    assert process.returncode == 1, output
+    assert '[FAIL] no ROS node publishes a command topic' in output, output
+    assert '/lowcmd' in output and 'telemetry example node low_state_suber' in output, output
+    data = json.loads(report.read_text())
+    assert data['example_nodes_seen'] == ['low_state_suber']
+    assert [item['node'] for item in data['command_writers']] == ['low_state_suber']
+
+
 @pytest.mark.parametrize('kind,topic,allow', [
     (LowCmd, '/lowcmd', '/lowcmd=1'),
     (Request, '/api/robot_state/request', '/api/robot_state/request=1'),

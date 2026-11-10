@@ -238,8 +238,21 @@ for example in read_low_state read_motion_state read_wireless_controller; do
   echo "$example exit=$?"
 done
 python3 scripts/go2_telemetry_preflight.py --domain 0 --interface ROBOT_INTERFACE \
+  --baseline go2-telemetry/preflight-before.json \
   --report go2-telemetry/preflight-after.json
 ```
+
+Pass the same `--allow-nonros-writer` arguments as before. With `--baseline`,
+the report separates command writers that appeared since the first check, each
+attributed to an approved example node, another ROS node, a firmware participant
+of the baseline or an unidentified participant, from acknowledged writers that
+disappeared. Any new writer fails with exit status 1, even when the per-topic
+count still matches. Exit status 3 means that acknowledged writers were only
+withdrawn, which is firmware graph churn, and it remains a failure to review.
+The examples' own processes have exited by the time this check runs, so run a
+third check with `--monitor 60 --baseline go2-telemetry/preflight-before.json`
+alongside them to record any writer they create. For a host that reaches the
+robot through the payload computer, see [go2-routed-telemetry.md](go2-routed-telemetry.md).
 
 The check describes the graph at the time it ran. It cannot prove what a robot
 process does with a topic, and any DDS participant, including this one, sends
