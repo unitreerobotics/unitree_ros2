@@ -142,8 +142,8 @@ The source code of examples locates at `/example/src/src`.
 - g1/lowlevel/g1_low_level_example: Low level control for G1
 - h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
 - low_level_ctrl: Low level control for Go2/B2
-- read_low_state: Read the low state from Go2/B2
-- read_low_state_hg: Read the low state from G1/H1/H1-2
+- read_low_state: Read the low state from Go2/B2/H1
+- read_low_state_hg: Read the low state from G1/H1-2
 - read_motion_state: Read the sport mode state from Go2/B2
 - read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
 - record_bag: Ros bag recording example.

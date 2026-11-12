@@ -177,10 +177,13 @@ interface, which is useful only when that selection is appropriate.
 
 The telemetry examples subscribe with sensor-data (best-effort) QoS, which
 matches both reliable and best-effort publishers; the tests cover both. A recorded
-GO2 session offers `/lowstate` and `/sportmodestate` as reliable. Evidence for
-`/wirelesscontroller` conflicts: one recording shows a reliable publisher, while a
-live GO2 observation found it best-effort, which a reliable subscription would not
-match. Confirm publisher QoS on the robot with `ros2 topic info -v`. API request/response topics retain their existing Unitree message
+GO2 session offers `/lowstate` and `/sportmodestate` as reliable, and in the GO2
+firmware session described [below](#go2-firmware-observation) the `/lowstate`,
+`/lf/sportmodestate` and `/wirelesscontroller` writers were all reliable and
+volatile. An earlier live observation found `/wirelesscontroller` best-effort,
+which a reliable subscription would not match, so publisher QoS can differ
+between firmware releases or configurations. Confirm it on the robot with
+`ros2 topic info -v`. API request/response topics retain their existing Unitree message
 schemas and topic conventions. Verify QoS and the firmware's topic names for the
 specific robot. Restart a previously running ROS CLI daemon after changing RMW,
 domain or DDS configuration so discovery reflects the current environment.
@@ -251,12 +254,79 @@ count still matches. Exit status 3 means that acknowledged writers were only
 withdrawn, which is firmware graph churn, and it remains a failure to review.
 The examples' own processes have exited by the time this check runs, so run a
 third check with `--monitor 60 --baseline go2-telemetry/preflight-before.json`
-alongside them to record any writer they create. For a host that reaches the
-robot through the payload computer, see [go2-routed-telemetry.md](go2-routed-telemetry.md).
+alongside them to record any writer they create.
 
 The check describes the graph at the time it ran. It cannot prove what a robot
 process does with a topic, and any DDS participant, including this one, sends
-discovery traffic on the domain.
+discovery traffic on the domain. It sees only participants that this host can
+discover: a controller on another computer, for example one reached through a
+different network segment, can hold motion authority without appearing in the
+report. A passing check is therefore not evidence that the robot is at rest or
+that nothing else is commanding it; confirm that separately.
+
+## GO2 firmware observation
+
+On 2026-11-10 the telemetry-only procedure above was run once against a GO2,
+from an x86_64 Ubuntu 24.04 host with Jazzy's packaged Cyclone DDS 0.10.5. The
+preflight ran at the commit that introduced it; the example binaries were built
+from a tree whose `read_*.cpp` sources are identical to it. The host reached the
+robot network through a routed path rather than a direct Ethernet link; that
+setup is site-specific and not part of this repository.
+
+Verified from the session logs and reports:
+
+- All 23 firmware DDS participants were discovered. The firmware reports
+  Cyclone DDS 0.10.2; Jazzy's 0.10.5 interoperated with it without any change to
+  either side.
+- `/lowstate` (`unitree_go/msg/LowState`): `read_low_state` received 4053
+  messages in 8.39 s after the first sample, about 483 Hz. The first sample
+  arrived about 7 s after the subscriber started, which reflects discovery over
+  the routed path.
+- `/lf/sportmodestate` (`unitree_go/msg/SportModeState`): `read_motion_state`
+  received 231 messages in 11.5 s, about 20 Hz.
+- `/wirelesscontroller`: two firmware writers were discovered and no sample was
+  received, because the remote controller was not in use.
+- All of these writers are plain DDS (no ROS node), reliable and volatile, with
+  the expected types.
+- The Jazzy host ran only the preflight and the three subscriber examples. No
+  command, API request or service call was published from it.
+- The first preflight listed 50 plain-DDS writers on command and request topics,
+  all belonging to firmware participants; they were acknowledged by exact count.
+  The check after the examples failed closed because one firmware writer on
+  `/api/vui/request` had disappeared (7 to 6). No writer had been added.
+  Comparing the two reports with `--baseline` classifies this as withdrawn-only
+  (exit status 3).
+
+The robot was not stationary. Separate software on another computer held motion
+authority and moved the GO2 during the session, and the preflight could not see
+it (see the limitation above). The rates above are therefore those of a moving
+robot, and the session does not show what the firmware publishes at rest.
+
+This session establishes native Jazzy reception of GO2 firmware telemetry on one
+robot and firmware release. It does not validate motion commands, API calls,
+request/response behavior with firmware, low-level control, other topics, or any
+other robot model.
+
+## Robot coverage
+
+The interfaces are shared by message family, not by robot. Per the official
+`unitree_sdk2` sources, robots publish `unitree_go/msg/LowState` (20 motor
+slots) or `unitree_hg/msg/LowState` (35 motor slots) on `lowstate`, and every
+robot uses `unitree_api` for request/response topics. A subscription of the
+other family never matches.
+
+| Robot | LowState family | Builds on Jazzy | Software DDS tests | Firmware telemetry | Commands and API calls |
+| --- | --- | --- | --- | --- | --- |
+| GO2 | `unitree_go` | Yes | Yes, per family | Read-only, one session (above) | Not verified |
+| GO2-W, B2, B2-W, H1 | `unitree_go` | Yes | Yes, per family | None | Not verified |
+| G1, H1-2, H2 | `unitree_hg` | Yes | Yes, per family | None | Not verified |
+
+"Builds on Jazzy" and "Software DDS tests" are properties of the message family
+and examples, established by CI and the plain DDS peer; no robot-specific code is
+needed. They do not show that a given robot's firmware publishes these topics,
+rates or QoS. Request/response APIs differ per robot even where a service name is
+shared; the existing clients target GO2, B2, G1 and H2 and are unchanged in
+protocol. No command or API path has been exercised against any robot's firmware.
 
 ## Validation matrix and limits
 
@@ -270,7 +340,8 @@ discovery traffic on the domain.
 | Jazzy x86_64 | Native Ubuntu 24.04 CI job | Hosted runners only; no robot deployment is tested |
 | Jazzy ARM64 | Native `ubuntu-24.04-arm` CI job | No emulation; no ARM robot deployment is tested |
 | Humble x86_64 | Native Ubuntu 22.04 regression job | Uses Humble's own middleware and dependencies |
-| Actual robot firmware and control | Separate hardware validation required | Not established by CI or bag replay |
+| GO2 firmware telemetry | One read-only session, not automated ([above](#go2-firmware-observation)) | Reception of three telemetry topics on one robot; no commands |
+| Robot control, API calls and other models | Separate hardware validation required | Not established by CI, bag replay or the GO2 session |
 
 The [native ROS 2 workflow](../.github/workflows/native-ros2.yml) resolves
 per-distribution dependencies with rosdep, builds interfaces and examples, gates

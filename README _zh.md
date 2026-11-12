@@ -130,8 +130,8 @@ ros2 topic list
 - g1/low_level/g1_low_level_example：G1 的低级别控制
 - h1-2/low_level/low_level_ctrl_hg：H1-2 的低电平控制
 - low_level_ctrl：Go2/B2 的低级别控制
-- read_low_state：读取 Go2/B2 的低级别状态
-- read_low_state_hg：读取 G1/H1/H1-2 的低级别状态
+- read_low_state：读取 Go2/B2/H1 的低级别状态
+- read_low_state_hg：读取 G1/H1-2 的低级别状态
 - read_motion_state：读取 Go2/B2 的运动模式状态
 - read_ wireless_controller：读取 G1/Go2/B2 的无线控制器状态
 - record_bag：Ros Bag 录制示例。
