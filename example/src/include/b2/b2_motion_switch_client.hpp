@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <cstdint>
 #include <future>
 #include <map>
@@ -33,16 +34,22 @@ class MotionSwitchClient {
         base_client_(node_, "/api/motion_switcher/request", "/api/motion_switcher/response") {}
 
   int32_t CheckMode(std::string &form, std::string &name) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = MOTION_SWITCHER_API_ID_CHECK_MODE;
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = MOTION_SWITCHER_API_ID_CHECK_MODE;
 
-    nlohmann::json js_res;
-    auto result = base_client_.Call(req, js_res);
-    if (result == 0) {
-      js_res["name"].get_to(name);
-      js_res["form"].get_to(form);
+      nlohmann::json js_res;
+      auto result = base_client_.Call(req, js_res);
+      if (result == 0) {
+        auto parsed_name = js_res.at("name").get<std::string>();
+        auto parsed_form = js_res.at("form").get<std::string>();
+        name = std::move(parsed_name);
+        form = std::move(parsed_form);
+      }
+      return result;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
     }
-    return result;
   }
 
   int32_t SelectMode(const std::string &name_or_alias) {
@@ -70,15 +77,19 @@ class MotionSwitchClient {
   }
 
   int32_t GetSilent(bool &silent) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = MOTION_SWITCHER_API_ID_GET_SILENT;
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = MOTION_SWITCHER_API_ID_GET_SILENT;
 
-    nlohmann::json js_res;
-    auto result = base_client_.Call(req, js_res);
-    if (result == 0) {
-      js_res["silent"].get_to(silent);
+      nlohmann::json js_res;
+      auto result = base_client_.Call(req, js_res);
+      if (result == 0) {
+        silent = js_res.at("silent").get<bool>();
+      }
+      return result;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
     }
-    return result;
   }
 };
 

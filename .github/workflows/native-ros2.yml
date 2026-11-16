@@ -1,0 +1,141 @@
+name: Native ROS 2 build and test
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: ${{ matrix.ros }} / ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ros: jazzy
+            runner: ubuntu-24.04
+            arch: amd64
+          - ros: jazzy
+            runner: ubuntu-24.04-arm
+            arch: arm64
+          - ros: humble
+            runner: ubuntu-22.04
+            arch: amd64
+    env:
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+      ROS_DOMAIN_ID: '173'
+      ROS_AUTOMATIC_DISCOVERY_RANGE: LOCALHOST
+      CYCLONEDDS_URI: >-
+        <CycloneDDS><Domain><General><Interfaces>
+        <NetworkInterface name="lo" multicast="true"/>
+        </Interfaces><AllowMulticast>false</AllowMulticast></General>
+        <Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address="127.0.0.1"/></Peers></Discovery>
+        </Domain></CycloneDDS>
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: ${{ matrix.ros }}
+      - name: Resolve native distribution dependencies
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          mkdir -p artifacts
+          if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+            sudo rosdep init
+          fi
+          rosdep update --rosdistro ${{ matrix.ros }} 2>&1 | tee artifacts/rosdep-update.log
+          rosdep install --from-paths cyclonedds_ws/src example/src test \
+            --ignore-src --rosdistro ${{ matrix.ros }} -y \
+            2>&1 | tee artifacts/rosdep-install.log
+      - name: Build interfaces, examples and native DDS test peer
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          colcon build --executor sequential \
+            --event-handlers console_direct+ \
+            --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            2>&1 | tee artifacts/build.log
+      - name: Verify installed examples and distribution isolation
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          source install/local_setup.bash
+          test "$(ros2 pkg executables unitree_ros2_example | wc -l)" -eq 24
+          test "$ROS_DISTRO" = '${{ matrix.ros }}'
+          if grep -hoE '/opt/ros/(foxy|galactic|humble|iron|jazzy|rolling)/' \
+            build/*/CMakeCache.txt | grep -v '^/opt/ros/${{ matrix.ros }}/$'; then
+            echo 'Unexpected ROS distribution in build cache' >&2
+            exit 1
+          fi
+      - name: Test firmware-era DDS software peer
+        if: matrix.ros == 'jazzy' && matrix.arch == 'amd64'
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          source install/local_setup.bash
+          scripts/test_cyclone_0102.sh "$RUNNER_TEMP/unitree-cyclone-0102" \
+            2>&1 | tee artifacts/cyclone-0102.log
+          cp "$RUNNER_TEMP/unitree-cyclone-0102/native-dds-0102.xml" artifacts/
+      - name: Gate functional tests on loopback only
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          source install/local_setup.bash
+          colcon test --packages-select unitree_ros2_test --executor sequential \
+            --event-handlers console_direct+ --return-code-on-test-failure \
+            2>&1 | tee artifacts/test.log
+      - name: API clients under 250 ms loopback latency
+        if: matrix.arch == 'amd64'
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          source install/local_setup.bash
+          rc=0
+          UNITREE_ALLOW_LO_NETEM=1 scripts/test_api_latency.sh 250ms \
+            artifacts/api-latency.xml 2>&1 | tee artifacts/api-latency.log || rc=$?
+          if [ "$rc" -eq 3 ]; then echo 'tc netem unavailable on this runner; skipped'; exit 0; fi
+          exit "$rc"
+      - name: Report functional results
+        if: always()
+        run: |
+          set -eo pipefail
+          colcon test-result --test-result-base build/unitree_ros2_test \
+            --all --verbose 2>&1 | tee artifacts/functional-results.log
+      - name: Run existing example lint checks
+        continue-on-error: true
+        run: |
+          set -eo pipefail
+          source /opt/ros/${{ matrix.ros }}/setup.bash
+          source install/local_setup.bash
+          colcon test --packages-skip unitree_ros2_test --executor sequential \
+            --event-handlers console_direct+ --return-code-on-test-failure \
+            2>&1 | tee artifacts/legacy-lint.log
+      - name: Report all test results (includes known upstream lint debt)
+        if: always()
+        continue-on-error: true
+        run: |
+          set -eo pipefail
+          mkdir -p artifacts
+          colcon test-result --all --verbose 2>&1 | tee artifacts/test-results.log
+      - name: Preserve build and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ros2-${{ matrix.ros }}-${{ matrix.arch }}
+          if-no-files-found: warn
+          path: |
+            artifacts/
+            log/
+            build/**/test_results/
+            build/**/Testing/

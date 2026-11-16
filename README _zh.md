@@ -1,4 +1,7 @@
 [TOC]
+
+Ubuntu 24.04 / ROS 2 Jazzy: [原生安装与验证指南](docs/jazzy.md)。Jazzy 使用发行版自带的 Cyclone DDS 和 RMW，无需按照下文重新编译 DDS。
+
 # Unitree 机器人ros2支持
 Unitree SDK2基于cyclonedds实现了一个易用的机器人数据通信机制，应用开发者可以利用这一接口实现机器人的数据通讯和指令控制(**支持Go2、B2和H1**)。 https://github.com/unitreerobotics/unitree_sdk2
 ROS2也使用DDS作为通讯工具，因此Go2、B2和H1机器人的底层可以兼容ros2，使用ros2自带的  msg 直接进行通讯和控制，而无需通过sdk接口转发。
@@ -84,26 +87,13 @@ colcon build #编译工作空间下的所有功能包
 接着打开网络设置，找到机器人所连接的网卡，进入 IPv4 ，将 IPv4 方式改为手动，地址设置为192.168.123.99，子网掩码设置为255.255.255.0，完成后点击应用，等待网络重新连接。
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/721e1660-04dc-42b7-8d6e-14799afe2165.png)
 
-打开 setup.sh 文件
-
+将机器人所连接的网卡名称作为参数传给 `setup.sh`。脚本会 source 已安装的 ROS 2 发行版和 Unitree 工作空间，选择 `rmw_cyclonedds_cpp`，并将 Cyclone DDS 绑定到该网卡：
 ```bash
-sudo gedit ~/unitree_ros2/setup.sh
+source ~/unitree_ros2/setup.sh enp3s0
 ```
-bash 的内容如下：
-```bash
-#!/bin/bash
-echo "Setup unitree ros2 environment"
-source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-                            <NetworkInterface name="enp3s0" priority="default" multicast="default" />
-                        </Interfaces></General></Domain></CycloneDDS>'
-```
-其中 "enp3s0" 为 Unitree 机器人所连接的网卡名称，根据实际情况修改为对应的网卡名称。在终端中执行：
-```bash
-source ~/unitree_ros2/setup.sh
-```
+其中 "enp3s0" 为 Unitree 机器人所连接的网卡名称，根据实际情况修改为对应的网卡名称。也可以用 `export UNITREE_NETWORK_INTERFACE=enp3s0` 代替参数。
+如果系统安装了多个 ROS 2 发行版，请添加发行版名称，例如 `source ~/unitree_ros2/setup.sh enp3s0 humble`。
+脚本优先使用 `~/unitree_ros2/cyclonedds_ws/install`，不存在时使用仓库根目录的 `install`；可设置 `UNITREE_ROS_WS` 选择其他工作空间。
 即可完成 Unitree 机器人开发环境的设置。
 如果不希望每次打开新终端都执行一次 bash 脚本，也可将 `setup.sh` 中的内容写入到 ~/.bashrc中，但是当系统有多个ros环境共存需要注意。
 
@@ -111,6 +101,7 @@ source ~/unitree_ros2/setup.sh
 ```bash
 source ~/unitree_ros2/setup_local.sh # 使用 "lo" 作为网卡
 ```
+若未设置 `ROS_DOMAIN_ID`，`setup_local.sh` 使用 ROS 域 173。请在 source 之前导出仿真器使用的域，例如 `export ROS_DOMAIN_ID=1`。
 或
 ```bash
 source ~/unitree_ros2/setup_default.sh # 不指定网卡
@@ -122,7 +113,7 @@ source ~/unitree_ros2/setup_default.sh # 不指定网卡
 完成上述配置后，建议重启一下电脑再进行测试。
 确保机器人连接正确，打开终端输入: 
 ```bash
-source ~/unitree_ros2/setup.sh
+source ~/unitree_ros2/setup.sh enp3s0
 ros2 topic list
 ```
 可以看见如下话题：
@@ -139,8 +130,8 @@ ros2 topic list
 - g1/low_level/g1_low_level_example：G1 的低级别控制
 - h1-2/low_level/low_level_ctrl_hg：H1-2 的低电平控制
 - low_level_ctrl：Go2/B2 的低级别控制
-- read_low_state：读取 Go2/B2 的低级别状态
-- read_low_state_hg：读取 G1/H1/H1-2 的低级别状态
+- read_low_state：读取 Go2/B2/H1 的低级别状态
+- read_low_state_hg：读取 G1/H1-2 的低级别状态
 - read_motion_state：读取 Go2/B2 的运动模式状态
 - read_ wireless_controller：读取 G1/Go2/B2 的无线控制器状态
 - record_bag：Ros Bag 录制示例。
@@ -150,7 +141,7 @@ ros2 topic list
 
 ctrl+alt+T打开终端，在终端中执行如下命令，编译测试例程：
 ```bash
-source ~/unitree_ros2/setup.sh
+source ~/unitree_ros2/setup.sh enp3s0
 cd ~/unitree_ros2/example
 colcon build
 ```

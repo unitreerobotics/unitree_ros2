@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "Setup unitree ros2 environment with default interface"
-source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+# Usage: source setup_default.sh [DISTRO]
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/setup_env.bash" || return 1
+_unitree_setup default "" "${1:-}"

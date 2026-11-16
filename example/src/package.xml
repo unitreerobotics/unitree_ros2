@@ -15,6 +15,10 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>rosbag2_cpp</depend>
+  <depend>rosbag2_storage</depend>
+  <depend>eigen</depend>
+  <depend>yaml-cpp</depend>
+  <exec_depend>rosbag2_storage_default_plugins</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

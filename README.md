@@ -2,6 +2,12 @@ Unitree robot ROS2 support
 
 [TOC]
 
+For Ubuntu 24.04 and ROS 2 Jazzy, follow the
+[native Jazzy installation and validation guide](docs/jazzy.md).
+Jazzy uses the distribution's packaged Cyclone DDS and matching RMW; the
+legacy source-DDS instructions below are not required for Jazzy.
+
+
 # Introduction
 Unitree SDK2 implements an easy-to-use robot communication mechanism based on Cyclonedds, which enable developers to achieve robot communication and control (**Supports Unitree Go2, B2, and H1**). See: https://github.com/unitreerobotics/unitree_sdk2
 
@@ -86,33 +92,28 @@ Connect Unitree robot and the computer using Ethernet cable. Then, use ifconfig 
 Next, open the network settings, find the network interface that the robot connected.In IPv4 setting, change the IPv4 mode to manual, set the address to 192.168.123.99, and set the mask to 255.255.255.0. After completion, click apply and wait for the network to reconnect.
 ![image](https://alidocs.oss-cn-zhangjiakou.aliyuncs.com/res/W4j6OJ2awDgbO3p8/img/721e1660-04dc-42b7-8d6e-14799afe2165.png)
 
-Open setup.sh file.
+Pass the network interface connected to the robot to `setup.sh`. The script
+sources the installed ROS 2 distribution and the Unitree workspace, selects
+`rmw_cyclonedds_cpp` and binds Cyclone DDS to that interface:
 ```bash
-sudo gedit ~/unitree_ros2/setup.sh
-```
-```bash
-#!/bin/bash
-echo "Setup unitree ros2 environment"
-source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-                            <NetworkInterface name="enp3s0" priority="default" multicast="default" />
-                        </Interfaces></General></Domain></CycloneDDS>'
+source ~/unitree_ros2/setup.sh enp3s0
 ```
 where "enp3s0" is the network interface name of unitree robot connected.
-Modify it to the corresponding network interface according to the actual situation. 
+Replace it with the corresponding network interface according to the actual situation.
+Instead of the argument, you can `export UNITREE_NETWORK_INTERFACE=enp3s0`.
+If more than one ROS 2 distribution is installed, add its name, for example
+`source ~/unitree_ros2/setup.sh enp3s0 humble`.
+The script uses `~/unitree_ros2/cyclonedds_ws/install` when it exists, otherwise a
+repository-root `install`; set `UNITREE_ROS_WS` to select another workspace.
 
-Source the environment to setup the ROS2 support of Unitree robot: 
-```bash
-source ~/unitree_ros2/setup.sh
-```
 If you don't want to source the bash script every time when a new terminal opens, you can write the content of bash script into ~/.bashrc, but attention should be paid when there are multiple ROS environments coexisting in the system.
 
 If your computer is not connected to the robot but you still want to use Unitree ROS2 for simulation and other functions, you can use the local loopback "lo" as the network interface.
 ```bash
 source ~/unitree_ros2/setup_local.sh # use "lo" as the network interface
 ```
+`setup_local.sh` uses ROS domain 173 unless `ROS_DOMAIN_ID` is already set.
+Export the domain used by your simulator before sourcing it, for example `export ROS_DOMAIN_ID=1`.
 or
 ```bash
 source ~/unitree_ros2/setup_default.sh # No network network interface specified 
@@ -124,7 +125,7 @@ After completing the above configuration, it is recommended to restart the compu
 
 Ensure that the network of robot is connected correctly, open a terminal and input:  
 ```bash
-source ~/unitree_ros2/setup.sh
+source ~/unitree_ros2/setup.sh enp3s0
 ros2 topic list
 ```
 You can see the following topics:
@@ -141,8 +142,8 @@ The source code of examples locates at `/example/src/src`.
 - g1/lowlevel/g1_low_level_example: Low level control for G1
 - h1-2/lowlevel/low_level_ctrl_hg: Low level control for H1-2
 - low_level_ctrl: Low level control for Go2/B2
-- read_low_state: Read the low state from Go2/B2
-- read_low_state_hg: Read the low state from G1/H1/H1-2
+- read_low_state: Read the low state from Go2/B2/H1
+- read_low_state_hg: Read the low state from G1/H1-2
 - read_motion_state: Read the sport mode state from Go2/B2
 - read_ wireless_controller: Read the state of wireless controller from G1/Go2/B2
 - record_bag: Ros bag recording example.
@@ -152,7 +153,7 @@ The source code of examples locates at `/example/src/src`.
 
 Open a terminal and input:
 ```bash
-source ~/unitree_ros2/setup.sh
+source ~/unitree_ros2/setup.sh enp3s0
 cd ~/unitree_ros2/example
 colcon build
 ```

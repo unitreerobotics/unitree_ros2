@@ -1,6 +1,10 @@
 #pragma once
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <cstdint>
+#include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -10,6 +14,19 @@ inline int64_t GetSystemUptimeInNanoseconds() {
   struct timespec ts {};
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
+}
+
+// Request identity ids, unique within the process. Every client on a response
+// topic receives every response, so two clients must never share an id.
+// A function-local static in an inline function is a single object program-wide.
+inline int64_t NextRequestId() {
+  static std::atomic<int64_t> last{0};
+  int64_t previous = last.load();
+  int64_t next = 0;
+  do {
+    next = std::max(GetSystemUptimeInNanoseconds(), previous + 1);
+  } while (!last.compare_exchange_weak(previous, next));
+  return next;
 }
 
 inline uint64_t GetCurrentTimeSeconds() {

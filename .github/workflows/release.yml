@@ -7,6 +7,9 @@ on:
 
 jobs:
   release:
+    # Tags and releases belong to the upstream repository only; forks must not
+    # create them even when Actions is enabled there.
+    if: github.repository == 'unitreerobotics/unitree_ros2'
     runs-on: ubuntu-latest
 
     steps:

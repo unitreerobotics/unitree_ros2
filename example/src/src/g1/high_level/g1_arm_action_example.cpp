@@ -97,6 +97,7 @@ class G1ArmActionNode : public rclcpp::Node {
     UT_PRINT_ERR(error_code,
                  unitree::robot::g1::UT_ROBOT_ARM_ACTION_ERR_INVALID_FSM_ID);
     UT_PRINT_ERR(error_code, UT_ROBOT_TASK_TIMEOUT);
+    UT_PRINT_ERR(error_code, UT_ROBOT_TASK_NOT_PUBLISHED);
   }
 
   std::thread thread_;

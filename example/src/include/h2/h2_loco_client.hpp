@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -46,80 +47,115 @@ class H2LocoClient {
         base_client_(node_, "/api/sport/request", "/api/sport/response") {}
 
   int32_t GetFsmId(int& fsm_id) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(fsm_id);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) fsm_id = js.at("data").get<int>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetFsmMode(int& fsm_mode) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_MODE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(fsm_mode);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_MODE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) fsm_mode = js.at("data").get<int>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetBalanceMode(int& balance_mode) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_BALANCE_MODE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(balance_mode);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_BALANCE_MODE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) balance_mode = js.at("data").get<int>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetSwingHeight(float& swing_height) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_SWING_HEIGHT;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(swing_height);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_SWING_HEIGHT;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) swing_height = js.at("data").get<float>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetStandHeight(float& stand_height) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_STAND_HEIGHT;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(stand_height);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_STAND_HEIGHT;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) stand_height = js.at("data").get<float>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetPhase(std::vector<float>& phase) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_PHASE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(phase);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_PHASE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) phase = js.at("data").get<std::vector<float>>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetArmSdkStatus(bool& arm_sdk_status) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_ARM_SDK_STATUS;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) js["data"].get_to(arm_sdk_status);
-    return ret;
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_ARM_SDK_STATUS;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) arm_sdk_status = js.at("data").get<bool>();
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetAvailableFsmIds(std::vector<int>& ids, std::vector<std::string>& names) {
-    Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_AVAILABLE_FSM_IDS;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      ids.clear();
-      names.clear();
-      if (js.contains("ids")) js["ids"].get_to(ids);
-      if (js.contains("names")) js["names"].get_to(names);
+    try {
+      Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_AVAILABLE_FSM_IDS;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        if (!js.is_object()) return UT_ROBOT_TASK_UNKNOWN_ERROR;
+        std::vector<int> parsed_ids;
+        std::vector<std::string> parsed_names;
+        if (js.contains("ids")) js.at("ids").get_to(parsed_ids);
+        if (js.contains("names")) js.at("names").get_to(parsed_names);
+        ids = std::move(parsed_ids);
+        names = std::move(parsed_names);
+      }
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
     }
-    return ret;
   }
 
   int32_t SetFsmId(int fsm_id) {

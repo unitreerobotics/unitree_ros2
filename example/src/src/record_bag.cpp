@@ -8,6 +8,9 @@
 #include "rosbag2_cpp/writer.hpp"
 #include "rosbag2_cpp/writers/sequential_writer.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
+#if __has_include("rosbag2_storage/storage_options.hpp")
+#include "rosbag2_storage/storage_options.hpp"
+#endif
 #include "unitree_go/msg/sport_mode_state.hpp"
 
 constexpr bool HIGH_FREQ = false;
@@ -23,24 +26,32 @@ class MotionStateSuber : public rclcpp::Node {
       topic_name = "sportmodestate";
     }
 
-    const rosbag2_cpp::StorageOptions storage_options(
-        {"timed_synthetic_bag", "sqlite3"});
+#if __has_include("rosbag2_storage/storage_options.hpp")
+    using StorageOptions = rosbag2_storage::StorageOptions;
+#else
+    using StorageOptions = rosbag2_cpp::StorageOptions;
+#endif
+    const StorageOptions storage_options(
+        {declare_parameter<std::string>("output", "motion_state_bag"), "sqlite3"});
     const rosbag2_cpp::ConverterOptions converter_options(
         {rmw_get_serialization_format(), rmw_get_serialization_format()});
     writer_ = std::make_unique<rosbag2_cpp::writers::SequentialWriter>();
 
     writer_->open(storage_options, converter_options);
 
-    writer_->create_topic({"a", "unitree_go/msg/sport_mode_state",
-                           rmw_get_serialization_format(), ""});
-
     // The suber  callback function is bind to
     // motion_state_suber::topic_callback
     suber_ = this->create_subscription<unitree_go::msg::SportModeState>(
-        topic_name, 10,
+        topic_name, rclcpp::SensorDataQoS(),
         [this](unitree_go::msg::SportModeState::SharedPtr data) {
           topic_callback(data);
         });
+    topic_name_ = suber_->get_topic_name();
+    rosbag2_storage::TopicMetadata metadata;
+    metadata.name = topic_name_;
+    metadata.type = "unitree_go/msg/SportModeState";
+    metadata.serialization_format = rmw_get_serialization_format();
+    writer_->create_topic(metadata);
   }
 
  private:
@@ -61,7 +72,7 @@ class MotionStateSuber : public rclcpp::Node {
     // Record motion states and serialize
     auto serializer = rclcpp::Serialization<unitree_go::msg::SportModeState>();
     auto serialized_message = rclcpp::SerializedMessage();
-    serializer.serialize_message(&data, &serialized_message);
+    serializer.serialize_message(data.get(), &serialized_message);
 
     auto bag_message =
         std::make_shared<rosbag2_storage::SerializedBagMessage>();
@@ -80,15 +91,18 @@ class MotionStateSuber : public rclcpp::Node {
         serialized_message.release_rcl_serialized_message();
 
     // Create a topic for message bag recoding
-    bag_message->topic_name = "a";
-    if (rcutils_system_time_now(&bag_message->time_stamp) != RCUTILS_RET_OK) {
-      RCLCPP_ERROR(get_logger(), "Error getting current time: %s",
-                   rcutils_get_error_string().str);
-    }
+    bag_message->topic_name = topic_name_;
+#ifdef UNITREE_ROSBAG2_SEPARATE_TIMESTAMPS
+    bag_message->recv_timestamp = now().nanoseconds();
+    bag_message->send_timestamp = bag_message->recv_timestamp;
+#else
+    bag_message->time_stamp = now().nanoseconds();
+#endif
 
     writer_->write(bag_message);
   }
 
+  std::string topic_name_;
   // Create the suber to receive motion states of robot
   rclcpp::Subscription<unitree_go::msg::SportModeState>::SharedPtr suber_;
   // Create the writer_ to record motion states of robot

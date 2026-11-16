@@ -41,14 +41,18 @@ class AudioClient : public rclcpp::Node {
   }
 
   int32_t GetVolume(uint8_t &volume) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_AUDIO_GET_VOLUME;
-    nlohmann::json js;
-    auto res = base_client_.Call(req, js);
-    if (res == 0) {
-      js["volume"].get_to(volume);
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_AUDIO_GET_VOLUME;
+      nlohmann::json js;
+      auto res = base_client_.Call(req, js);
+      if (res == 0) {
+        volume = js.at("volume").get<uint8_t>();
+      }
+      return res;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
     }
-    return res;
   }
 
   int32_t SetVolume(uint8_t volume) {

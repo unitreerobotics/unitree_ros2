@@ -25,7 +25,7 @@ class LowStateSuber : public rclcpp::Node {
     }
     // The suber  callback function is bind to low_state_suber::topic_callback
     suber_ = this->create_subscription<unitree_go::msg::LowState>(
-        topic_name, 10,
+        topic_name, rclcpp::SensorDataQoS(),
         [this](const unitree_go::msg::LowState::SharedPtr data) {
           topic_callback(data);
         });

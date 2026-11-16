@@ -3,7 +3,10 @@
 ***********************************************************************/
 #ifndef _ROS2_SPORT_CLIENT_
 #define _ROS2_SPORT_CLIENT_
+#include <memory>
 #include <iostream>
+#include <stdexcept>
+#include "request_client.hpp"
 #include <rclcpp/rclcpp.hpp>
 
 #include "nlohmann/json.hpp"
@@ -66,31 +69,31 @@ class SportClient {
   rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber_;
   rclcpp::Subscription<unitree_api::msg::Response>::SharedPtr req_suber_;
   rclcpp::Node *node_;
+  std::shared_ptr<unitree::ros2::RequestClient> response_client_;
 
  public:
-  explicit SportClient(rclcpp::Node *node) : node_(node) {
+  explicit SportClient(rclcpp::Node *node)
+      : node_(node),
+        response_client_(std::make_shared<unitree::ros2::RequestClient>(
+          node, "/api/sport/request", "/api/sport/response", 10)) {
+    // A later command replaces an unacknowledged one, so a recovering link
+    // cannot replay a backlog of old motion commands. The lifespan only bounds
+    // retransmission; it is not a delivery or execution deadline.
     req_puber_ = node_->create_publisher<unitree_api::msg::Request>(
-        "/api/sport/request", 10);
+        "/api/sport/request",
+        rclcpp::QoS(1).lifespan(rclcpp::Duration(std::chrono::seconds(5))));
   }
 
   template <typename Request, typename Response>
   nlohmann::json Call(const Request &req) {
-    std::promise<typename Response::SharedPtr> response_promise;
-    auto response_future = response_promise.get_future();
-    auto api_id = req.header.identity.api_id;
-    auto req_suber_ = node_->create_subscription<Response>(
-        "/api/sport/response", 1,
-        [&response_promise, api_id](const typename Response::SharedPtr data) {
-          if (data->header.identity.api_id == api_id) {
-            response_promise.set_value(data);
-          }
-        });
-
-    req_puber_->publish(req);
-
-    auto response = *response_future.get();
-    nlohmann::json js = nlohmann::json::parse(response.data.data());
-    req_suber_.reset();
+    // The query shares the bounded, correlated response path with the other
+    // Unitree API clients. The JSON-returning legacy API reports failures by
+    // exception because it has no status return value.
+    nlohmann::json js;
+    const int32_t status = response_client_->Call(req, js);
+    if (status != UT_ROBOT_SUCCESS) {
+      throw std::runtime_error("Unitree sport API call failed: " + std::to_string(status));
+    }
     return js;
   }
 

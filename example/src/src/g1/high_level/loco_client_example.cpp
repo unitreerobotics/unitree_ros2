@@ -35,6 +35,7 @@ class UnitreeG1ControlNode : public rclcpp::Node {
     UT_PRINT_ERR(error_code,
                  unitree::robot::g1::UT_ROBOT_LOCO_ERR_INVALID_TASK_ID);
     UT_PRINT_ERR(error_code, UT_ROBOT_TASK_TIMEOUT);
+    UT_PRINT_ERR(error_code, UT_ROBOT_TASK_NOT_PUBLISHED);
     return false;
   }
 

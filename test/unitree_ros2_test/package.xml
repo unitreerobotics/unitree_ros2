@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>unitree_ros2_test</name>
+  <version>0.0.0</version>
+  <description>Offline serialization and native DDS interoperability tests.</description>
+  <maintainer email="unitree@unitree.com">Unitree</maintainer>
+  <license>BSD-3-Clause</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>unitree_go</depend>
+  <depend>unitree_hg</depend>
+  <depend>unitree_api</depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>ament_index_python</test_depend>
+  <test_depend>python3-yaml</test_depend>
+  <test_depend>rclpy</test_depend>
+  <test_depend>rcl_interfaces</test_depend>
+  <test_depend>rosidl_runtime_py</test_depend>
+  <test_depend>rosidl_parser</test_depend>
+  <test_depend>rmw_cyclonedds_cpp</test_depend>
+  <test_depend>cyclonedds</test_depend>
+  <test_depend>rosbag2_py</test_depend>
+  <test_depend>ros2bag</test_depend>
+  <test_depend>rosbag2_storage_mcap</test_depend>
+  <test_depend>rosbag2_storage_default_plugins</test_depend>
+  <test_depend>unitree_ros2_example</test_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

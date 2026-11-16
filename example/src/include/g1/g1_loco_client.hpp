@@ -48,78 +48,102 @@ class LocoClient {
 
   /*Low Level API Call*/
   int32_t GetFsmId(int& fsm_id) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      js["data"].get_to(fsm_id);
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_ID;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        fsm_id = js.at("data").get<int>();
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetFsmMode(int& fsm_mode) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_MODE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      js["data"].get_to(fsm_mode);
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_FSM_MODE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        fsm_mode = js.at("data").get<int>();
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetBalanceMode(int& balance_mode) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_BALANCE_MODE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      js["data"].get_to(balance_mode);
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_BALANCE_MODE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        balance_mode = js.at("data").get<int>();
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetSwingHeight(float& swing_height) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_SWING_HEIGHT;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      std::cout << js.dump() << std::endl;
-      js["data"].get_to(swing_height);
-    } else {
-      std::cerr << "Failed to connect to robot." << std::endl;
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_SWING_HEIGHT;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        std::cout << js.dump() << std::endl;
+        swing_height = js.at("data").get<float>();
+      } else {
+        std::cerr << "Failed to connect to robot." << std::endl;
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetStandHeight(float& stand_height) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_STAND_HEIGHT;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      js["data"].get_to(stand_height);
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_STAND_HEIGHT;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        stand_height = js.at("data").get<float>();
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t GetPhase(std::vector<float>& phase) {
-    unitree_api::msg::Request req;
-    req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_PHASE;
-    nlohmann::json js;
-    int32_t ret = base_client_.Call(req, js);
-    if (ret == 0) {
-      js["data"].get_to(phase);
-    }
+    try {
+      unitree_api::msg::Request req;
+      req.header.identity.api_id = ROBOT_API_ID_LOCO_GET_PHASE;
+      nlohmann::json js;
+      int32_t ret = base_client_.Call(req, js);
+      if (ret == 0) {
+        phase = js.at("data").get<std::vector<float>>();
+      }
 
-    return ret;
+      return ret;
+    } catch (const nlohmann::json::exception&) {
+      return UT_ROBOT_TASK_UNKNOWN_ERROR;
+    }
   }
 
   int32_t SetFsmId(int fsm_id) {

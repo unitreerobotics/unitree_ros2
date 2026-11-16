@@ -10,7 +10,7 @@ class WirelessControllerSuber : public rclcpp::Node {
   WirelessControllerSuber() : Node("wireless_controller_suber") {
     // the cmd_puber is set to subscribe "/wirelesscontroller" topic
     suber_ = this->create_subscription<unitree_go::msg::WirelessController>(
-        "/wirelesscontroller", 10,
+        "/wirelesscontroller", rclcpp::SensorDataQoS(),
         [this](const unitree_go::msg::WirelessController::SharedPtr data) {
           topic_callback(data);
         });

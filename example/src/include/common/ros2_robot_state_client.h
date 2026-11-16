@@ -14,6 +14,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "nlohmann/json.hpp"
+#include "request_client.hpp"
 #include "unitree_api/msg/request.hpp"
 #include "unitree_api/msg/response.hpp"
  
@@ -70,15 +71,25 @@ public:
     explicit RobotStateClient(rclcpp::Node* node) 
         : node_(node),
           req_puber_(node_->create_publisher<unitree_api::msg::Request>(
-              "/api/robot_state/request", 10)) {
+              "/api/robot_state/request",
+              rclcpp::QoS(10).lifespan(rclcpp::Duration(std::chrono::seconds(5))))),
+          response_client_(std::make_shared<unitree::ros2::RequestClient>(
+              node, "/api/robot_state/request", "/api/robot_state/response", 10)) {
     }
   
     int32_t ServiceList(std::vector<ServiceState>& list) {
         unitree_api::msg::Request req;
         req.header.identity.api_id = ROBOT_STATE_API_ID_SERVICE_LIST;
         req.header.identity.id = GetSystemUptimeInNanoseconds();
-        auto js = Call<unitree_api::msg::Request, unitree_api::msg::Response>(req);
-        js.get_to(list);
+        nlohmann::json js;
+        const int32_t result = response_client_->Call(req, js);
+        if (result != 0) return result;
+        try {
+            auto parsed = js.get<std::vector<ServiceState>>();
+            list = std::move(parsed);
+        } catch (const nlohmann::json::exception&) {
+            return UT_ROBOT_TASK_UNKNOWN_ERROR;
+        }
         return 0;
     }
  
@@ -91,10 +102,15 @@ public:
         js["switch"] = swit;
         req.parameter = js.dump();
         
-        auto js_res = Call<unitree_api::msg::Request, unitree_api::msg::Response>(req);
-        ServiceSwitchResponse response;
-        js_res.get_to(response);
-        status = response.status;
+        nlohmann::json js_res;
+        const int32_t result = response_client_->Call(req, js_res);
+        if (result != 0) return result;
+        try {
+            const auto response = js_res.get<ServiceSwitchResponse>();
+            status = response.status;
+        } catch (const nlohmann::json::exception&) {
+            return UT_ROBOT_TASK_UNKNOWN_ERROR;
+        }
         return 0;
     }
  
@@ -113,26 +129,6 @@ public:
     }
 
 private:
-    template<typename Request, typename Response>
-    nlohmann::json Call(const Request& req) {
-        std::promise<typename Response::SharedPtr> response_promise;
-        auto response_future = response_promise.get_future();
-        const auto api_id = req.header.identity.api_id;
-        
-        auto req_suber_ = node_->create_subscription<Response>(
-            "/api/robot_state/response", rclcpp::QoS(1),
-            [&response_promise, api_id](const typename Response::SharedPtr data) {
-                if (data->header.identity.api_id == api_id) {
-                    response_promise.set_value(data);
-                }
-            });
-
-        req_puber_->publish(req);
-
-        auto response = *response_future.get();
-        return nlohmann::json::parse(response.data.data());
-    }
-
     static int64_t GetSystemUptimeInNanoseconds() {
         struct timespec ts{};
         clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -141,6 +137,7 @@ private:
 
     rclcpp::Node* node_;
     rclcpp::Publisher<unitree_api::msg::Request>::SharedPtr req_puber_;
+    std::shared_ptr<unitree::ros2::RequestClient> response_client_;
 };
 
 #endif // ROS2_ROBOT_STATE_CLIENT_H_

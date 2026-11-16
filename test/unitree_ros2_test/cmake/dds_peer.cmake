@@ -1,0 +1,30 @@
+find_package(unitree_api REQUIRED)
+find_package(unitree_go REQUIRED)
+find_package(unitree_hg REQUIRED)
+find_package(CycloneDDS REQUIRED)
+# Generate a plain DDS peer from the same installed, official message IDL.
+# It has no ROS client library and does not link the RMW implementation.
+get_filename_component(api_share "${unitree_api_DIR}/.." ABSOLUTE)
+get_filename_component(go_share "${unitree_go_DIR}/.." ABSOLUTE)
+get_filename_component(api_root "${api_share}/.." ABSOLUTE)
+get_filename_component(go_root "${go_share}/.." ABSOLUTE)
+file(GLOB api_idl "${api_share}/msg/dds_connext/*.idl")
+idlc_generate(TARGET api_types FILES ${api_idl}
+  INCLUDES "${api_root}" BASE_DIR "${api_root}" DEFAULT_EXTENSIBILITY final FEATURES case-sensitive)
+file(GLOB go_idl "${go_share}/msg/dds_connext/*.idl")
+get_filename_component(hg_share "${unitree_hg_DIR}/.." ABSOLUTE)
+get_filename_component(hg_root "${hg_share}/.." ABSOLUTE)
+file(GLOB hg_idl "${hg_share}/msg/dds_connext/*.idl")
+idlc_generate(TARGET go_types FILES ${go_idl}
+  INCLUDES "${go_root}" BASE_DIR "${go_root}" DEFAULT_EXTENSIBILITY final FEATURES case-sensitive)
+idlc_generate(TARGET hg_types FILES ${hg_idl}
+  INCLUDES "${hg_root}" BASE_DIR "${hg_root}" DEFAULT_EXTENSIBILITY final FEATURES case-sensitive)
+add_executable(dds_peer "${CMAKE_CURRENT_LIST_DIR}/../dds_peer.c")
+target_compile_options(dds_peer PRIVATE -Wall -Wextra -Wpedantic)
+target_link_libraries(dds_peer CycloneDDS::ddsc api_types go_types hg_types)
+add_executable(telemetry_endpoint_peer "${CMAKE_CURRENT_LIST_DIR}/../telemetry_endpoint_peer.c")
+target_compile_options(telemetry_endpoint_peer PRIVATE -Wall -Wextra -Wpedantic)
+target_link_libraries(telemetry_endpoint_peer CycloneDDS::ddsc go_types)
+add_executable(dds_api_server "${CMAKE_CURRENT_LIST_DIR}/../dds_api_server.c")
+target_compile_options(dds_api_server PRIVATE -Wall -Wextra -Wpedantic)
+target_link_libraries(dds_api_server CycloneDDS::ddsc api_types)
